@@ -734,6 +734,8 @@ def main():
     
     # Paths (project-relative for portability)
     base_dir = Path(__file__).resolve().parent
+    results_dir = base_dir / "results"
+    results_dir.mkdir(exist_ok=True)
     drugbank_xml = base_dir / "drugbank_all_full_database.xml" / "full_database.xml"
     cluster_type_tsv = base_dir / "dataset" / "rna_single_nuclei_cluster_type.tsv" / "rna_single_nuclei_cluster_type.tsv"
     
@@ -753,7 +755,7 @@ def main():
     print("\n### STEP 1: Parse DrugBank Database ###")
     parser = DrugBankParser(drugbank_xml)
     drugs_df = parser.parse()
-    drugs_df.to_csv('results/drugs_data.csv', index=False)
+    drugs_df.to_csv(results_dir / "drugs_data.csv", index=False)
     print(f"Saved drugs data to drugs_data.csv")
     
     # Step 2: Load brain gene expression
