@@ -63,3 +63,8 @@ desktop.ini
 .cache/
 .pytest_cache/
 .mypy_cache/
+
+# Large datasets and generated outputs (GitHub size limits)
+dataset/
+results/
+drugbank_all_full_database.xml/
