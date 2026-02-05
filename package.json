@@ -1,0 +1,24 @@
+{
+  "name": "drug-category-predictor",
+  "version": "1.0.0",
+  "description": "NeSy-based Drug Category Prediction Web Interface",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite serve web",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npm run dev"
+  },
+  "keywords": [
+    "drug-prediction",
+    "machine-learning",
+    "nesy",
+    "drug-category",
+    "bioinformatics"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
