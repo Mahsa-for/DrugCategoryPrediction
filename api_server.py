@@ -79,11 +79,11 @@ def predict():
         metric_explanations = {
             'BES': {
                 'name': 'Brain Evidence Strength',
-                'description': 'Measures the average expression level across brain regions for target genes. Higher BES indicates stronger molecular evidence in the brain. Range: 0-1.'
+                'description': 'Measures the average expression level across brain cell cluster types for target genes. Higher BES indicates stronger molecular evidence in the brain. Range: 0-1.'
             },
             'BSR': {
                 'name': 'Brain Specificity Ratio',
-                'description': 'Measures the relative expression strength in brain versus body tissues. Higher BSR indicates that drug effects are preferentially observable in brain. BSR > 1: brain-enriched; BSR < 1: body-enriched.'
+                'description': 'Measures the relative expression strength in brain cell cluster types versus body tissues. Higher BSR indicates that drug effects are preferentially observable in brain. BSR > 1: brain-enriched; BSR < 1: body-enriched.'
             },
             'BSF': {
                 'name': 'Brain Sufficiency Flag',

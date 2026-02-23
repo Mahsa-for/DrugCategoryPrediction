@@ -33,7 +33,7 @@ class NeSyDrugPredictionSystem:
     Neuro-Symbolic System for Drug Category Prediction
     
     Based on the following architecture:
-    1. Gene Expression in Brain Regions (scRNA data)
+    1. Gene Expression by Brain Cell Cluster Type (scRNA data)
     2. Extract Drug Target Genes (DrugBank + DRUGseqr)
     3. Fetch ATC Hierarchy (Therapeutic categories)
     4. Integrate Gene Signatures (Embedding)
@@ -84,13 +84,13 @@ class NeSyDrugPredictionSystem:
     
     def task1_brain_regions(self) -> pd.DataFrame:
         """
-        Task 1: Gene Expression in Brain Regions
+        Task 1: Gene Expression by Brain Cell Cluster Type
         Input: scRNA Brain Genes dataset
-        Output: Expression of genes in each brain region
-        Process: Train (analyze expression patterns)
+        Output: Expression of genes in each brain cell cluster type
+        Process: Train (analyze expression patterns by cell cluster type)
         """
         print("\n" + "="*80)
-        print("TASK 1: GENE EXPRESSION IN BRAIN REGIONS")
+        print("TASK 1: GENE EXPRESSION BY BRAIN CELL CLUSTER TYPE")
         print("="*80)
         
         self.brain_expression = task1_brain_gene_expression.execute(
@@ -155,12 +155,12 @@ class NeSyDrugPredictionSystem:
     def task4_integration(self) -> Tuple[np.ndarray, List[int]]:
         """
         Task 4: Integrate Gene Signatures
-        Input: Brain expression + Drug targets + Gene signatures
+        Input: Brain cell cluster type expression + Drug targets + Gene signatures
         Output: Integrated feature embeddings
         Process: Embedding (combine all information)
         """
         print("\n" + "="*80)
-        print("TASK 4: INTEGRATE GENE SIGNATURES")
+        print("TASK 4: INTEGRATE GENE SIGNATURES (by cell cluster type)")
         print("="*80)
         
         # Task 4 returns only features and valid_indices, but feature names are saved in a CSV in task4_integrate_gene_signatures
@@ -189,7 +189,7 @@ class NeSyDrugPredictionSystem:
     def task5a_cns_classification(self, X: np.ndarray, valid_indices: List[int]) -> Tuple[Any, StandardScaler]:
         """
         Task 5a: CNS vs Non-CNS Classification (Stage 1)
-        Input: Integrated features + ATC hierarchy
+        Input: Integrated features (including cell cluster type expression) + ATC hierarchy
         Output: Trained CNS classifier
         Process: Infer (learn CNS-relevant patterns)
         """
@@ -355,7 +355,7 @@ class NeSyDrugPredictionSystem:
             # Introduction
             f.write("## 1. Introduction\n\n")
             f.write("This project implements a Neuro-Symbolic (NeSy) system for predicting drug ")
-            f.write("therapeutic categories based on their effects on gene expression in brain regions.\n\n")
+            f.write("therapeutic categories based on their effects on gene expression in brain cell cluster types.\n\n")
             
             # System Architecture
             f.write("## 2. System Architecture\n\n")
@@ -363,10 +363,10 @@ class NeSyDrugPredictionSystem:
             
             # Task descriptions
             for i, task_desc in enumerate([
-                ("Gene Expression in Brain Regions", "Analyze scRNA-seq data to understand gene expression patterns across different brain cell types"),
+                ("Gene Expression by Brain Cell Cluster Type", "Analyze scRNA-seq data to understand gene expression patterns across different brain cell cluster types"),
                 ("Extract Drug Target Genes", "Combine DrugBank and DRUGseqr.gmt to extract comprehensive drug-gene interactions"),
                 ("Fetch ATC Hierarchy", "Extract therapeutic classification from DrugBank ATC codes"),
-                ("Integrate Gene Signatures", "Create feature embeddings combining brain expression, drug targets, and gene signatures"),
+                ("Integrate Gene Signatures", "Create feature embeddings combining brain cell cluster type expression, drug targets, and gene signatures"),
                 ("CNS vs Non-CNS Classification (Stage 1)", "Train binary classifier to distinguish CNS-active from Non-CNS drugs"),
                 ("Drug Category Classification (Stage 2)", "Learn patterns to predict drug therapeutic categories based on gene effects"),
                 ("Prediction and Evaluation", "Generate top-k predictions with probabilities and comprehensive evaluation metrics")
@@ -379,7 +379,7 @@ class NeSyDrugPredictionSystem:
             f.write("## 3. Datasets Used\n\n")
             f.write("1. **DrugBank XML**: Comprehensive drug database with targets, ATC codes\n")
             f.write("2. **DRUGseqr.gmt**: Gene expression signatures from drug perturbations\n")
-            f.write("3. **scRNA Brain Data**: Single-cell RNA-seq from brain regions\n\n")
+            f.write("3. **scRNA Brain Data**: Single-cell RNA-seq from brain cell cluster types\n\n")
             
             # Results
             f.write("## 4. Results and Evaluation\n\n")
@@ -418,7 +418,7 @@ class NeSyDrugPredictionSystem:
             # Conclusion
             f.write("## 6. Conclusion\n\n")
             f.write("This NeSy system successfully integrates multiple data sources to predict ")
-            f.write("drug therapeutic categories based on gene expression effects in the brain. ")
+            f.write("drug therapeutic categories based on gene expression effects in brain cell cluster types. ")
             f.write("The modular architecture ensures each step is explainable and verifiable.\n\n")
             
             # Files Generated

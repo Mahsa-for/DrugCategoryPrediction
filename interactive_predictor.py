@@ -14,8 +14,8 @@ class InteractiveDrugPredictor:
     """Interactive interface for drug category prediction"""
     
     def __init__(self, models_dir='results'):
-        """Initialize with trained models from NeSy system"""
-        self.models_dir = Path(models_dir)
+        """Initialize with trained models from NeSy system (always use 'results' directory)"""
+        self.models_dir = Path('results')
         self.predictor = None
         self.gene_expression = None
         self.classifier_model = None
@@ -44,23 +44,21 @@ class InteractiveDrugPredictor:
         self.load_models()
     
     def load_models(self):
-        """Load trained models and data from NeSy results"""
+        """Load trained models and data from NeSy results (always from 'results' directory)"""
         print("\n" + "="*70)
-        print("LOADING MODELS")
+        print("LOADING MODELS FROM 'results' DIRECTORY")
         print("="*70)
-        
         try:
-            # Load brain expression data
-            expr_file = self.models_dir / 'task1_brain_expression.csv'
+            # Always use 'results' directory for all model/data files
+            expr_file = Path('results') / 'task1_brain_expression.csv'
             if expr_file.exists():
                 self.gene_expression = pd.read_csv(expr_file, index_col=0)
                 print(f"[OK] Gene expression data loaded: {self.gene_expression.shape[0]} genes x {self.gene_expression.shape[1]} regions")
             else:
                 print(f"[ERROR] Gene expression file not found: {expr_file}")
                 return False
-            
-            # Load trained classifier
-            model_file = self.models_dir / 'task5_classifier_model.pkl'
+
+            model_file = Path('results') / 'task5_classifier_model.pkl'
             if model_file.exists():
                 self.classifier_model = joblib.load(model_file)
                 print(f"[OK] Drug category classifier model loaded")
@@ -68,75 +66,88 @@ class InteractiveDrugPredictor:
                 print(f"[ERROR] Classifier model not found: {model_file}")
                 return False
 
-            # Load CNS classifier (Stage 1)
-            cns_file = self.models_dir / 'task5a_cns_classifier.pkl'
+            cns_file = Path('results') / 'task5a_cns_classifier.pkl'
             if cns_file.exists():
                 self.cns_classifier = joblib.load(cns_file)
                 print(f"[OK] CNS classifier (Stage 1) loaded")
             else:
                 print(f"[WARN] CNS classifier not found: {cns_file}")
-            
-            # Load label encoder
-            encoder_file = self.models_dir / 'task5_label_encoder.pkl'
+
+            encoder_file = Path('results') / 'task5_label_encoder.pkl'
             if encoder_file.exists():
                 self.label_encoder = joblib.load(encoder_file)
                 print(f"[OK] Label encoder loaded: {len(self.label_encoder.classes_)} categories")
             else:
                 print(f"[ERROR] Label encoder not found: {encoder_file}")
                 return False
-            
-            # Load feature scaler
-            scaler_file = self.models_dir / 'task4_feature_scaler.pkl'
+
+            scaler_file = Path('results') / 'task4_feature_scaler.pkl'
             if scaler_file.exists():
                 self.feature_scaler = joblib.load(scaler_file)
                 print(f"[OK] Feature scaler loaded")
             else:
                 print(f"[ERROR] Feature scaler not found: {scaler_file}")
                 return False
-            
+
             print("\n[OK] All models loaded successfully!")
             return True
-            
         except Exception as e:
             print(f"\n[ERROR] Error loading models: {e}")
             return False
     
-    def extract_features(self, gene_list):
-        """Extract features from gene list"""
-        # Filter genes present in expression data
-        available_genes = [g.upper() for g in gene_list if g.upper() in self.gene_expression.index]
-        
+    @staticmethod
+    def extract_features_static(drug_genes, gene_expression, bem):
+        """
+        Extract features for a drug based on its target genes and gene expression matrix.
+        Matches the logic in Task 4 (task4_integrate_gene_signatures.py), including BES and BSR.
+        Returns (feature_vector, input_genes, available_genes)
+        """
+        available_genes = [g for g in drug_genes if g in gene_expression.index]
         if not available_genes:
-            return None, gene_list, []
-        
-        # Get expression profiles
-        gene_expr = self.gene_expression.loc[available_genes]
-        
-        # Create features matching Task 4 format
-        n_regions = self.gene_expression.shape[1]
-        region_names = self.gene_expression.columns.tolist()
-        
+            return None, drug_genes, []
+        gene_profiles = gene_expression.loc[available_genes]
         features = []
-        
-        # 1. Mean expression per brain region
-        features.extend(gene_expr.mean(axis=0).values)
-        
-        # 2. Max expression per brain region
-        features.extend(gene_expr.max(axis=0).values)
-        
-        # 3. Standard deviation per brain region
-        features.extend(gene_expr.std(axis=0).values)
-        
+        # 1. Mean expression per brain cell cluster type
+        features.extend(gene_profiles.mean(axis=0).values)
+        # 2. Max expression per brain cell cluster type
+        features.extend(gene_profiles.max(axis=0).values)
+        # 3. Standard deviation per brain cell cluster type
+        features.extend(gene_profiles.std(axis=0).values)
         # 4. Overall statistics
-        features.append(gene_expr.values.mean())      # Overall mean
-        features.append(gene_expr.values.std())       # Overall std
-        features.append(gene_expr.values.max())       # Overall max
-        features.append(len(available_genes))         # Number of genes
-        features.append(len(available_genes) / len(gene_list) if gene_list else 0)  # Coverage ratio
-        
+        features.append(gene_profiles.values.mean())  # Overall mean
+        features.append(gene_profiles.values.std())   # Overall std
+        features.append(gene_profiles.values.max())   # Overall max
+        features.append(len(available_genes))          # Number of matching genes
+        features.append(len(available_genes) / len(drug_genes) if drug_genes else 0)  # Gene coverage ratio
+        # 5. Compute BES and BSR using BrainEvidenceMetrics
+        gene_expr_dict = {g: {ct: float(gene_profiles.loc[g, ct]) for ct in gene_profiles.columns} for g in available_genes}
+        brain_regions = list(gene_profiles.columns)
+        body_tissues = []  # Not present in this matrix, so use empty list
+        bes = bem.brain_evidence_strength(gene_expr_dict, brain_regions)
+        bsr = bem.brain_specificity_ratio(gene_expr_dict, brain_regions, body_tissues)
+        features.append(bes)
+        features.append(bsr)
+        # Enforce feature length (should match model/scaler)
+        if len(features) != 109:
+            raise ValueError(f"Feature vector length mismatch: expected 109, got {len(features)}")
+        import numpy as np
         feature_vector = np.array(features).reshape(1, -1)
-        
-        return feature_vector, gene_list, available_genes
+        # Clean inf/NaN values
+        feature_vector = np.nan_to_num(feature_vector, nan=0.0, posinf=0.0, neginf=0.0)
+        return feature_vector, drug_genes, available_genes
+
+    def extract_features(self, gene_list):
+        """
+        Wrapper for static feature extraction using self's gene_expression and BrainEvidenceMetrics.
+        """
+        from src.metrics.brain_evidence import BrainEvidenceMetrics
+        bem = BrainEvidenceMetrics()
+        # gene_list may be upper/lower case, ensure matching index
+        gene_list_upper = [g.upper() for g in gene_list]
+        gene_expression = self.gene_expression
+        # Map gene_expression index to upper for matching
+        gene_expression.index = gene_expression.index.str.upper()
+        return self.extract_features_static(gene_list_upper, gene_expression, bem)
     
     def predict(self, gene_list, top_k=5):
         """

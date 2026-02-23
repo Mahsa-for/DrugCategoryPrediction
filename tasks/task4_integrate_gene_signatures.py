@@ -1,6 +1,6 @@
 """
 Task 4: Integrate Gene Signatures
-Input: Brain expression + Drug targets + Gene signatures
+Input: Brain cell cluster type expression + Drug targets + Gene signatures
 Output: Integrated feature embeddings
 Process: Embedding (combine all information)
 """
@@ -12,17 +12,26 @@ from tqdm import tqdm
 from typing import Tuple, List
 from sklearn.preprocessing import StandardScaler
 
+# Import BrainEvidenceMetrics for BES/BSR calculation
+from src.metrics.brain_evidence import BrainEvidenceMetrics
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
-def create_drug_features(drug_genes: List[str], gene_expression: pd.DataFrame) -> np.ndarray:
+
+def create_drug_features(drug_genes: List[str], gene_expression: pd.DataFrame, bem: BrainEvidenceMetrics) -> np.ndarray:
     """
-    Create feature vector for a drug based on its target genes' expression
+    Create feature vector for a drug based on its target genes' expression across brain cell cluster types, including BES and BSR.
     
     Args:
         drug_genes: List of gene names for the drug
-        gene_expression: Gene expression matrix (genes × brain regions)
+        gene_expression: Gene expression matrix (genes × brain cell cluster types)
+        bem: BrainEvidenceMetrics instance for BES/BSR calculation
     
     Returns:
         Feature vector representing drug's effect profile
+    Note:
+        The term 'brain_regions' is used for compatibility with BrainEvidenceMetrics, but refers to brain cell cluster types in this context.
     """
     available_genes = set(gene_expression.index)
     matching_genes = [g for g in drug_genes if g in available_genes]
@@ -36,13 +45,13 @@ def create_drug_features(drug_genes: List[str], gene_expression: pd.DataFrame) -
     # Create aggregated features
     features = []
     
-    # 1. Mean expression per brain region
+    # 1. Mean expression per brain cell cluster type
     features.extend(gene_profiles.mean(axis=0).values)
     
-    # 2. Max expression per brain region
+    # 2. Max expression per brain cell cluster type
     features.extend(gene_profiles.max(axis=0).values)
     
-    # 3. Standard deviation per brain region
+    # 3. Standard deviation per brain cell cluster type
     features.extend(gene_profiles.std(axis=0).values)
     
     # 4. Overall statistics
@@ -51,6 +60,18 @@ def create_drug_features(drug_genes: List[str], gene_expression: pd.DataFrame) -
     features.append(gene_profiles.values.max())   # Overall max
     features.append(len(matching_genes))          # Number of matching genes
     features.append(len(matching_genes) / len(drug_genes))  # Gene coverage ratio
+
+    # 5. Compute BES and BSR using BrainEvidenceMetrics
+    # Prepare gene_expression dict for BEM: {gene: {cell_type: expr, ...}, ...}
+    gene_expr_dict = {g: {ct: float(gene_profiles.loc[g, ct]) for ct in gene_profiles.columns} for g in matching_genes}
+    # Use the correct argument name 'brain_regions' for compatibility with BrainEvidenceMetrics (refers to cell cluster types)
+    brain_regions = list(gene_profiles.columns)
+    # For BSR, we need to define body_tissues (not present in this matrix, so use empty list)
+    body_tissues = []
+    bes = bem.brain_evidence_strength(gene_expr_dict, brain_regions)
+    bsr = bem.brain_specificity_ratio(gene_expr_dict, brain_regions, body_tissues)
+    features.append(bes)
+    features.append(bsr)
     
     return np.array(features)
 
@@ -73,7 +94,7 @@ def execute(brain_expression: pd.DataFrame,
     
     print(f"\n  Input data:")
     print(f"    Brain genes: {brain_expression.shape[0]:,}")
-    print(f"    Brain regions: {brain_expression.shape[1]}")
+    print(f"    Brain cell cluster types: {brain_expression.shape[1]}")
     print(f"    Drug entries: {len(drug_targets)}")
     
     # Filter to only DrugBank drugs (they have ATC codes)
@@ -84,18 +105,21 @@ def execute(brain_expression: pd.DataFrame,
     features_list = []
     valid_indices = []
     failed_count = 0
-    
+
+    # Initialize BrainEvidenceMetrics
+    bem = BrainEvidenceMetrics()
+
     print(f"\n  Extracting features for each drug...")
     for idx, row in tqdm(drugbank_drugs.iterrows(), total=len(drugbank_drugs), desc="    Processing drugs"):
         all_genes = row['all_genes']
-        
+
         if not all_genes or not isinstance(all_genes, list):
             failed_count += 1
             continue
-        
-        # Create feature vector
-        features = create_drug_features(all_genes, brain_expression)
-        
+
+        # Create feature vector (now includes BES and BSR)
+        features = create_drug_features(all_genes, brain_expression, bem)
+
         if features is not None:
             features_list.append(features)
             valid_indices.append(idx)
@@ -145,18 +169,18 @@ def execute(brain_expression: pd.DataFrame,
     
     # Save feature importance analysis
     feature_names = []
-    n_regions = brain_expression.shape[1]
-    region_names = brain_expression.columns.tolist()
-    
-    for region in region_names:
-        feature_names.append(f'mean_expr_{region}')
-    for region in region_names:
-        feature_names.append(f'max_expr_{region}')
-    for region in region_names:
-        feature_names.append(f'std_expr_{region}')
-    
+    n_cell_types = brain_expression.shape[1]
+    cell_type_names = brain_expression.columns.tolist()
+
+    for ct in cell_type_names:
+        feature_names.append(f'mean_expr_{ct}')
+    for ct in cell_type_names:
+        feature_names.append(f'max_expr_{ct}')
+    for ct in cell_type_names:
+        feature_names.append(f'std_expr_{ct}')
+
     feature_names.extend(['overall_mean', 'overall_std', 'overall_max', 
-                         'num_genes', 'gene_coverage'])
+                         'num_genes', 'gene_coverage', 'BES', 'BSR'])
     
     # Calculate feature variances
     feature_variances = feature_matrix_scaled.var(axis=0)
@@ -170,6 +194,44 @@ def execute(brain_expression: pd.DataFrame,
     for _, row in feature_importance.head(10).iterrows():
         print(f"    {row['feature_name']}: {row['variance']:.4f}")
     
+    # --- Plots for report ---
+    import matplotlib.pyplot as plt
+    # 1. Feature variance (importance) bar plot
+    plt.figure(figsize=(12, 6))
+    feature_importance.head(20).plot(x='feature_name', y='variance', kind='bar', legend=False, color='dodgerblue')
+    plt.title('Top 20 Most Variable Integrated Features')
+    plt.ylabel('Variance (Feature Importance)')
+    plt.xlabel('Feature')
+    plt.xticks(rotation=75, ha='right')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_top20_feature_importance.png')
+    plt.close()
+
+    # 2. Heatmap of feature matrix (first 30 samples × first 30 features)
+    plt.figure(figsize=(10, 8))
+    import seaborn as sns
+    sns.heatmap(feature_matrix_scaled[:30, :30], cmap='viridis')
+    plt.title('Feature Matrix Heatmap (First 30 Samples × 30 Features)')
+    plt.xlabel('Feature Index')
+    plt.ylabel('Sample Index')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_feature_matrix_heatmap.png')
+    plt.close()
+
+    # 3. Distribution of BES and BSR values
+    plt.figure(figsize=(8, 5))
+    bes_idx = feature_names.index('BES')
+    bsr_idx = feature_names.index('BSR')
+    plt.hist(feature_matrix_scaled[:, bes_idx], bins=40, color='purple', alpha=0.7, label='BES')
+    plt.hist(feature_matrix_scaled[:, bsr_idx], bins=40, color='orange', alpha=0.7, label='BSR')
+    plt.title('Distribution of BES and BSR (Standardized)')
+    plt.xlabel('Value (Standardized)')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_bes_bsr_distribution.png')
+    plt.close()
+
     return feature_matrix_scaled, valid_indices
 
 

@@ -17,15 +17,18 @@ import numpy as np
 class BrainEvidenceMetrics:
     """
     Compute evidence support metrics for drug predictions based on brain expression.
-    
-    Metrics assess whether gene expression in brain regions is sufficiently strong
+
+    Metrics assess whether gene expression in brain cell cluster types is sufficiently strong
     and specific to support a brain-based interpretation of drug effects.
-    
+
     Attributes:
         tau_strength (float): Threshold for Brain Evidence Strength [0, 1].
             Default 0.3 means BES must be at least 30% of max possible expression.
         tau_ratio (float): Threshold for Brain Specificity Ratio [0, inf].
             Default 0.6 means brain expression should be at least 60% of body expression.
+
+    Note:
+        In this project, 'brain region' refers to 'cell cluster type'.
     """
     
     def __init__(self, tau_strength: float = 0.3, tau_ratio: float = 0.6):
@@ -33,8 +36,8 @@ class BrainEvidenceMetrics:
         Initialize metrics with configurable thresholds.
         
         Args:
-            tau_strength: Threshold for evidence strength (0–1).
-            tau_ratio: Threshold for brain/body ratio (0–inf).
+            tau_strength: Threshold for evidence strength (0-1).
+            tau_ratio: Threshold for brain/body ratio (0-inf).
         
         Raises:
             ValueError: If thresholds are out of valid ranges.
@@ -50,31 +53,32 @@ class BrainEvidenceMetrics:
     def brain_evidence_strength(
         self,
         gene_expression: Dict[str, Dict[str, float]],
-        brain_regions: List[str]
+        brain_cell_types: List[str]
     ) -> float:
         """
         Compute Brain Evidence Strength (BES).
-        
-        Measures the median expression level across brain regions for target genes.
+
+        Measures the median expression level across brain cell cluster types for target genes.
         Using the median makes BES more robust to outliers and high-expression bias.
-        
+
         Args:
             gene_expression: Dict mapping gene names to tissue->expression values.
-                Example: {'TP53': {'cortex': 0.8, 'liver': 0.2}, ...}
-            brain_regions: List of brain region names (keys in gene_expression subdicts).
-        
+                Example: {'TP53': {'Astrocyte': 0.8, 'liver': 0.2}, ...}
+            brain_cell_types: List of brain cell cluster type names (keys in gene_expression subdicts).
+
         Returns:
-            BES: Median expression across brain regions and genes, normalized to [0, 1].
+            BES: Median expression across brain cell cluster types and genes, normalized to [0, 1].
                 Returns 0.0 if no data is available.
-        
+
         Notes:
-            - BES is computed as: median(expression across all brain regions and genes)
+            - BES is computed as: median(expression across all brain cell cluster types and genes)
             - Values normalized to [0, 1] assuming expression values are already normalized
-            - Genes without brain region data are skipped
+            - Genes without brain cell cluster type data are skipped
+            - In this project, 'brain region' means 'cell cluster type'.
         """
         brain_expressions = []
         for gene, tissues in gene_expression.items():
-            for region in brain_regions:
+            for region in brain_cell_types:
                 if region in tissues:
                     brain_expressions.append(tissues[region])
         if not brain_expressions:
@@ -108,6 +112,7 @@ class BrainEvidenceMetrics:
             - BSR = max(brain expression) / max(body expression)
             - Used to identify whether effects are brain-enriched (BSR > 1) or body-enriched
             - Infinity indicates exclusive brain activity (no body expression)
+            - In this project, 'brain region' means 'cell cluster type'.
         """
         max_brain = 0.0
         max_body = 0.0
@@ -222,86 +227,89 @@ class BrainEvidenceMetrics:
 # USAGE EXAMPLE (commented)
 # ============================================================================
 
-"""
+# ============================================================================
+# USAGE EXAMPLE (commented)
+# ============================================================================
+# """
 # Example: Evaluate brain evidence for a predicted CNS drug
-
-from src.metrics.brain_evidence import BrainEvidenceMetrics
-
-# Initialize metrics with default thresholds
-metrics = BrainEvidenceMetrics(tau_strength=0.3, tau_ratio=1.0)
-
-# Example gene expression data (normalized to [0, 1])
-gene_expression = {
-    'DRD2': {
-        'cortex': 0.85,
-        'hippocampus': 0.78,
-        'striatum': 0.92,
-        'liver': 0.15,
-        'kidney': 0.10,
-    },
-    'HTR2A': {
-        'cortex': 0.72,
-        'hippocampus': 0.68,
-        'striatum': 0.55,
-        'liver': 0.20,
-        'kidney': 0.12,
-    },
-    'MAOA': {
-        'cortex': 0.65,
-        'hippocampus': 0.60,
-        'striatum': 0.58,
-        'liver': 0.85,  # High in liver (off-target)
-        'kidney': 0.50,
-    }
-}
-
-brain_regions = ['cortex', 'hippocampus', 'striatum']
-body_tissues = ['liver', 'kidney']
-
-# Compute evidence summary
-summary = metrics.evidence_summary(gene_expression, brain_regions, body_tissues)
-
-print(f"Brain Evidence Strength (BES):  {summary['bes']:.3f}")
-print(f"Brain Specificity Ratio (BSR):  {summary['bsr']:.3f}")
-print(f"Brain Sufficiency Flag (BSF):   {summary['bsf']}")
-print(f"\nInterpretation:\n{summary['interpretation']}")
-
-# Output (example):
-# Brain Evidence Strength (BES):  0.682
-# Brain Specificity Ratio (BSR):  0.883
-# Brain Sufficiency Flag (BSF):   True
 #
-# Interpretation:
-# Brain evidence sufficient for brain-based interpretation
-
-
-# Example 2: High off-target expression (hepatotoxic drug)
-gene_expression_offtarget = {
-    'CYP3A4': {
-        'cortex': 0.35,
-        'hippocampus': 0.30,
-        'striatum': 0.25,
-        'liver': 0.95,  # Very high in liver
-        'kidney': 0.70,
-    }
-}
-
-summary2 = metrics.evidence_summary(
-    gene_expression_offtarget, brain_regions, body_tissues
-)
-
-print(f"\n--- OFF-TARGET EXAMPLE ---")
-print(f"Brain Evidence Strength (BES):  {summary2['bes']:.3f}")
-print(f"Brain Specificity Ratio (BSR):  {summary2['bsr']:.3f}")
-print(f"Brain Sufficiency Flag (BSF):   {summary2['bsf']}")
-print(f"\nInterpretation:\n{summary2['interpretation']}")
-
-# Output (example):
-# Brain Evidence Strength (BES):  0.300
-# Brain Specificity Ratio (BSR):  0.368
-# Brain Sufficiency Flag (BSF):   False
+# from src.metrics.brain_evidence import BrainEvidenceMetrics
 #
-# Interpretation:
-# Brain evidence insufficient – brain specificity (0.368) below threshold (1.000).
-# Effects may be distributed across multiple tissues.
-"""
+# # Initialize metrics with default thresholds
+# metrics = BrainEvidenceMetrics(tau_strength=0.3, tau_ratio=1.0)
+#
+# # Example gene expression data (normalized to [0, 1])
+# gene_expression = {
+#     'DRD2': {
+#         'cortex': 0.85,
+#         'hippocampus': 0.78,
+#         'striatum': 0.92,
+#         'liver': 0.15,
+#         'kidney': 0.10,
+#     },
+#     'HTR2A': {
+#         'cortex': 0.72,
+#         'hippocampus': 0.68,
+#         'striatum': 0.55,
+#         'liver': 0.20,
+#         'kidney': 0.12,
+#     },
+#     'MAOA': {
+#         'cortex': 0.65,
+#         'hippocampus': 0.60,
+#         'striatum': 0.58,
+#         'liver': 0.85,  # High in liver (off-target)
+#         'kidney': 0.50,
+#     }
+# }
+#
+# brain_regions = ['cortex', 'hippocampus', 'striatum']
+# body_tissues = ['liver', 'kidney']
+#
+# # Compute evidence summary
+# summary = metrics.evidence_summary(gene_expression, brain_regions, body_tissues)
+#
+# print(f"Brain Evidence Strength (BES):  {summary['bes']:.3f}")
+# print(f"Brain Specificity Ratio (BSR):  {summary['bsr']:.3f}")
+# print(f"Brain Sufficiency Flag (BSF):   {summary['bsf']}")
+# print(f"\nInterpretation:\n{summary['interpretation']}")
+#
+# # Output (example):
+# # Brain Evidence Strength (BES):  0.682
+# # Brain Specificity Ratio (BSR):  0.883
+# # Brain Sufficiency Flag (BSF):   True
+# #
+# # Interpretation:
+# # Brain evidence sufficient for brain-based interpretation
+#
+#
+# # Example 2: High off-target expression (hepatotoxic drug)
+# gene_expression_offtarget = {
+#     'CYP3A4': {
+#         'cortex': 0.35,
+#         'hippocampus': 0.30,
+#         'striatum': 0.25,
+#         'liver': 0.95,  # Very high in liver
+#         'kidney': 0.70,
+#     }
+# }
+#
+# summary2 = metrics.evidence_summary(
+#     gene_expression_offtarget, brain_regions, body_tissues
+# )
+#
+# print(f"\n--- OFF-TARGET EXAMPLE ---")
+# print(f"Brain Evidence Strength (BES):  {summary2['bes']:.3f}")
+# print(f"Brain Specificity Ratio (BSR):  {summary2['bsr']:.3f}")
+# print(f"Brain Sufficiency Flag (BSF):   {summary2['bsf']}")
+# print(f"\nInterpretation:\n{summary2['interpretation']}")
+#
+# # Output (example):
+# # Brain Evidence Strength (BES):  0.300
+# # Brain Specificity Ratio (BSR):  0.368
+# # Brain Sufficiency Flag (BSF):   False
+# #
+# # Interpretation:
+# # Brain evidence insufficient – brain specificity (0.368) below threshold (1.000).
+# # Effects may be distributed across multiple tissues.
+# """

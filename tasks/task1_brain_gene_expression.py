@@ -1,10 +1,3 @@
-"""
-Task 1: Gene Expression in Brain Regions
-Input: scRNA Brain Genes dataset
-Output: Expression of genes in each brain region
-Process: Train (analyze expression patterns)
-"""
-
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -63,6 +56,20 @@ def execute(cluster_type_path: str, output_dir: Path) -> pd.DataFrame:
     print("\n  Top 10 highly expressed genes across all brain regions:")
     for gene, expr in top_genes.items():
         print(f"    {gene}: {expr:.2f}")
+
+        # Create a bar chart of average gene expression by cluster type
+        import matplotlib.pyplot as plt
+        avg_expression_by_cluster = gene_expression.mean(axis=0).sort_values(ascending=False)
+        plt.figure(figsize=(12, 6))
+        avg_expression_by_cluster.plot(kind='bar', color='skyblue')
+        plt.title('Average Gene Expression by Brain Cluster Type')
+        plt.xlabel('Brain Cluster Type')
+        plt.ylabel('Average Expression (nCPM)')
+        plt.tight_layout()
+        plot_path = output_dir / 'task1_avg_expression_by_cluster.png'
+        plt.savefig(plot_path)
+        plt.close()
+        print(f"\n✓ Bar chart saved: {plot_path}")
     
     return gene_expression
 

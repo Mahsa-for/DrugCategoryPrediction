@@ -14,6 +14,9 @@ from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.metrics import classification_report, accuracy_score, f1_score
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 def prepare_labels(drug_targets: pd.DataFrame, atc_hierarchy: pd.DataFrame, valid_indices: List[int]) -> Tuple[np.ndarray, List[str]]:

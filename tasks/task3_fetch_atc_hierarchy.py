@@ -11,6 +11,9 @@ from pathlib import Path
 from collections import Counter
 from tqdm import tqdm
 from typing import Dict
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 # ATC Code Level Descriptions
@@ -162,16 +165,33 @@ def execute(drugbank_xml: str, output_dir: Path) -> pd.DataFrame:
     for code, count in level1_counts.items():
         name = ATC_MAIN_GROUPS.get(code, 'Unknown')
         print(f"    {code} - {name}: {count} ({count/len(atc_df)*100:.1f}%)")
-    
-    # Check for drugs with multiple ATC codes
+
+    # --- Plots for report ---
+    # 1. ATC Main Group (Level 1) distribution
+    plt.figure(figsize=(10, 6))
+    level1_counts = atc_df['atc_level1'].value_counts().sort_index()
+    labels = [f"{code} - {ATC_MAIN_GROUPS.get(code, 'Unknown')}" for code in level1_counts.index]
+    plt.bar(labels, level1_counts.values, color='cornflowerblue')
+    plt.title('ATC Main Group (Level 1) Distribution')
+    plt.ylabel('Number of Assignments')
+    plt.xlabel('ATC Main Group')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_atc_level1_distribution.png')
+    plt.close()
+
+    # 2. Number of ATC codes per drug
     drugs_multi_atc = atc_df.groupby('drug_id').size()
-    multi_atc_count = (drugs_multi_atc > 1).sum()
-    print(f"\n  Drugs with multiple ATC codes: {multi_atc_count}")
-    if multi_atc_count > 0:
-        print(f"    Max ATC codes per drug: {drugs_multi_atc.max()}")
-        print(f"    Mean ATC codes per drug: {drugs_multi_atc.mean():.2f}")
-    
-    # Save level statistics
+    plt.figure(figsize=(8, 5))
+    drugs_multi_atc.hist(bins=range(1, drugs_multi_atc.max()+2), color='salmon', alpha=0.8)
+    plt.title('Number of ATC Codes per Drug')
+    plt.xlabel('ATC Codes per Drug')
+    plt.ylabel('Number of Drugs')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_atc_codes_per_drug.png')
+    plt.close()
+
+    # 3. Unique categories per ATC level
     level_stats = []
     for level in ['atc_level1', 'atc_level2', 'atc_level3']:
         unique_count = atc_df[level].nunique()
@@ -179,11 +199,18 @@ def execute(drugbank_xml: str, output_dir: Path) -> pd.DataFrame:
             'level': level,
             'unique_categories': unique_count
         })
-    
     level_stats_df = pd.DataFrame(level_stats)
     level_stats_df.to_csv(output_dir / 'task3_atc_level_statistics.csv', index=False)
+    plt.figure(figsize=(6, 4))
+    plt.bar(level_stats_df['level'], level_stats_df['unique_categories'], color='mediumseagreen')
+    plt.title('Unique Categories per ATC Level')
+    plt.xlabel('ATC Level')
+    plt.ylabel('Number of Unique Categories')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_unique_categories_per_level.png')
+    plt.close()
+
     print(f"\n  Saved level statistics to: task3_atc_level_statistics.csv")
-    
     return atc_df
 
 

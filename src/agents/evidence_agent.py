@@ -11,8 +11,8 @@ class EvidenceAgent:
 
     def __init__(self):
         self.models = {
-            'cns': SklearnAgent("models/cns_classifier.joblib"),
-            'atc': SklearnAgent("models/atc_classifier.joblib")
+            'cns': SklearnAgent("results/task5a_cns_classifier.pkl"),
+            'atc': SklearnAgent("results/task5_classifier_model.pkl")
         }
 
     def run(self, inputs: EvidenceInputs, task: str = 'atc') -> Dict:
