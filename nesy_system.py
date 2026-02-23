@@ -10,6 +10,7 @@ import joblib
 from pathlib import Path
 from typing import Dict, List, Tuple, Any
 import warnings
+from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings('ignore')
 
 # Import all task modules
@@ -18,6 +19,7 @@ from tasks import (
     task2_extract_drug_targets,
     task3_fetch_atc_hierarchy,
     task4_integrate_gene_signatures,
+    task5a_cns_classifier,
     task5_train_classifier,
     task6_predict_evaluate
 )
@@ -49,10 +51,13 @@ class NeSyDrugPredictionSystem:
         self.drug_targets = None
         self.atc_hierarchy = None
         self.integrated_features = None
+        self.cns_classifier = None
+        self.cns_scaler = None
         self.classifier_model = None
         
         # Evaluation metrics storage
         self.metrics = {}
+        self.cns_metrics = {}
         
     def validate_datasets(self) -> bool:
         """Step 0: Validate all required datasets"""
@@ -158,18 +163,70 @@ class NeSyDrugPredictionSystem:
         print("TASK 4: INTEGRATE GENE SIGNATURES")
         print("="*80)
         
+        # Task 4 returns only features and valid_indices, but feature names are saved in a CSV in task4_integrate_gene_signatures
         self.integrated_features, valid_indices = task4_integrate_gene_signatures.execute(
             brain_expression=self.brain_expression,
             drug_targets=self.drug_targets,
             output_dir=self.results_dir
         )
-        
+
+        # Load feature names from the feature importance CSV (created in Task 4)
+        import pandas as pd
+        feature_importance_path = self.results_dir / 'task4_feature_importance.csv'
+        if feature_importance_path.exists():
+            feature_importance_df = pd.read_csv(feature_importance_path)
+            self.feature_names = feature_importance_df['feature_name'].tolist()
+        else:
+            raise FileNotFoundError(f"Feature importance file not found: {feature_importance_path}")
+
         # Save task result
         np.save(self.results_dir / 'task4_integrated_features.npy', self.integrated_features)
         np.save(self.results_dir / 'task4_valid_indices.npy', valid_indices)
         print(f"\n✓ Task 4 completed. Feature shape: {self.integrated_features.shape}")
-        
+
         return self.integrated_features, valid_indices
+    
+    def task5a_cns_classification(self, X: np.ndarray, valid_indices: List[int]) -> Tuple[Any, StandardScaler]:
+        """
+        Task 5a: CNS vs Non-CNS Classification (Stage 1)
+        Input: Integrated features + ATC hierarchy
+        Output: Trained CNS classifier
+        Process: Infer (learn CNS-relevant patterns)
+        """
+        print("\n" + "="*80)
+        print("TASK 5a: CNS vs NON-CNS CLASSIFICATION (Stage 1)")
+        print("="*80)
+        
+        # Ensure feature_names is available and includes 'BES' and 'BSR'
+        if hasattr(self, 'feature_names'):
+            feature_names = self.feature_names
+        else:
+            # Fallback: try to infer from X if it's a DataFrame, else raise error
+            if hasattr(X, 'columns'):
+                feature_names = list(X.columns)
+            else:
+                raise ValueError("feature_names must be provided as an attribute of the system or as columns of X.")
+
+        if 'BES' not in feature_names or 'BSR' not in feature_names:
+            raise ValueError("feature_names must include 'BES' and 'BSR'. Got: {}".format(feature_names))
+
+        self.cns_classifier, self.cns_scaler, cns_metrics = task5a_cns_classifier.execute(
+            X=X,
+            drug_targets=self.drug_targets,
+            atc_hierarchy=self.atc_hierarchy,
+            valid_indices=valid_indices,
+            output_dir=self.results_dir,
+            feature_names=feature_names
+        )
+        
+        # Store CNS metrics
+        self.cns_metrics = cns_metrics
+        
+        print(f"\n✓ Task 5a completed. CNS Classifier: {cns_metrics['best_model']}")
+        print(f"   Accuracy: {cns_metrics['train_accuracy']:.4f}")
+        print(f"   CNS drugs: {cns_metrics['num_cns_samples']}, Non-CNS drugs: {cns_metrics['num_non_cns_samples']}")
+        
+        return self.cns_classifier, self.cns_scaler
     
     def task5_train_model(self, X_train, y_train) -> Any:
         """
@@ -241,7 +298,9 @@ class NeSyDrugPredictionSystem:
             'class_names': le.classes_.tolist()
         }
         
-        # Save model and encoder
+        # Patch model.classes_ to ATC codes before saving
+        if hasattr(self.classifier_model, 'classes_'):
+            self.classifier_model.classes_ = le.classes_
         joblib.dump(self.classifier_model, self.results_dir / 'task5_classifier_model.pkl')
         joblib.dump(self.label_encoder, self.results_dir / 'task5_label_encoder.pkl')
         print(f"\n✓ Task 5 completed. Best model: {best_model_name}")
@@ -308,7 +367,8 @@ class NeSyDrugPredictionSystem:
                 ("Extract Drug Target Genes", "Combine DrugBank and DRUGseqr.gmt to extract comprehensive drug-gene interactions"),
                 ("Fetch ATC Hierarchy", "Extract therapeutic classification from DrugBank ATC codes"),
                 ("Integrate Gene Signatures", "Create feature embeddings combining brain expression, drug targets, and gene signatures"),
-                ("Train Classification Model", "Learn patterns to predict drug categories based on gene effects"),
+                ("CNS vs Non-CNS Classification (Stage 1)", "Train binary classifier to distinguish CNS-active from Non-CNS drugs"),
+                ("Drug Category Classification (Stage 2)", "Learn patterns to predict drug therapeutic categories based on gene effects"),
                 ("Prediction and Evaluation", "Generate top-k predictions with probabilities and comprehensive evaluation metrics")
             ], 1):
                 f.write(f"### Task {i}: {task_desc[0]}\n")
@@ -324,8 +384,17 @@ class NeSyDrugPredictionSystem:
             # Results
             f.write("## 4. Results and Evaluation\n\n")
             
+            if self.cns_metrics:
+                f.write("### CNS Classification (Stage 1) Performance\n\n")
+                for metric, value in self.cns_metrics.items():
+                    if isinstance(value, (int, float, np.number)):
+                        f.write(f"- **{metric}**: {value:.4f}\n")
+                    else:
+                        f.write(f"- **{metric}**: {value}\n")
+                f.write("\n")
+            
             if 'training' in self.metrics:
-                f.write("### Training Performance\n\n")
+                f.write("### Drug Category Classification (Stage 2) Performance\n\n")
                 for metric, value in self.metrics['training'].items():
                     f.write(f"- **{metric}**: {value}\n")
                 f.write("\n")
@@ -409,8 +478,11 @@ class NeSyDrugPredictionSystem:
         # Task 4: Integration
         X, valid_indices = self.task4_integration()
         
-        # Prepare labels from ATC hierarchy
-        print("\n  Preparing labels from ATC hierarchy...")
+        # Task 5a: CNS Classification (Stage 1)
+        self.task5a_cns_classification(X, valid_indices)
+        
+        # Prepare labels from ATC hierarchy for drug category classification
+        print("\n  Preparing labels from ATC hierarchy for drug category prediction...")
         drug_to_atc = self.atc_hierarchy.groupby('drug_id')['primary_category'].first()
         
         labels = []
@@ -435,10 +507,7 @@ class NeSyDrugPredictionSystem:
         
         print(f"    Train set: {len(X_train)}, Test set: {len(X_test)}")
         
-        # Task 5: Train model
-        model = self.task5_train_model(X_train, y_train)
-        
-        # Task 5: Train model
+        # Task 5: Train drug category classification model (Stage 2)
         model = self.task5_train_model(X_train, y_train)
         
         # Task 6: Predict and evaluate

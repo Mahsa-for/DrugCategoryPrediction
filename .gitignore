@@ -1,3 +1,19 @@
+# Remove TxAgent and all related files
+TxAgent/
+# Remove local virtual environments
+vllm-env/
+.venv/
+# Remove Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+# Remove node_modules if not needed
+node_modules/
+# Remove other large or unnecessary files
+*.log
+*.bak
+*.swp
 # Node modules and dependencies
 node_modules/
 package-lock.json

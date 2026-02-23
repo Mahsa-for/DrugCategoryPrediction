@@ -3,836 +3,784 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drug Category Predictor - NeSy System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Drug Category Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-        }
-        
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-        }
-        
-        .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-bottom: 3px solid var(--primary);
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            color: var(--primary) !important;
-            font-size: 1.5rem;
-        }
-        
-        .container-main {
-            margin-top: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-        }
-        
-        .card-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 15px 15px 0 0;
-            border: none;
-            padding: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .btn-predict {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-            border-radius: 25px;
-            transition: all 0.3s;
-        }
-        
-        .btn-predict:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-        }
-        
-        .gene-badge {
-            display: inline-block;
-            background: var(--info);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            margin: 0.25rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        
-        .gene-badge .remove {
-            margin-left: 0.5rem;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .prediction-box {
-            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-            border-left: 5px solid var(--primary);
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-        }
-        
-        .prediction-primary {
-            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-            border-left-color: var(--success);
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .confidence-bar {
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 0.5rem 0;
-        }
-        
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success), var(--primary));
-            transition: width 0.5s ease-in-out;
-            border-radius: 4px;
-        }
-        
-        .category-rank {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            background: white;
-            border-radius: 10px;
-            margin-bottom: 0.75rem;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .category-rank.rank-1 {
-            border-left-color: #fbbf24;
-            background: #fffbeb;
-        }
-        
-        .category-rank.rank-2 {
-            border-left-color: #a78bfa;
-        }
-        
-        .category-rank.rank-3 {
-            border-left-color: #fb7185;
-        }
-        
-        .rank-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            width: 50px;
-            text-align: center;
-            color: var(--primary);
-        }
-        
-        .rank-number.rank-1 {
-            color: #fbbf24;
-        }
-        
-        .rank-info {
-            flex: 1;
-        }
-        
-        .rank-category {
-            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background: #f5f7fb;
             color: #1f2937;
         }
-        
-        .rank-code {
-            font-size: 0.85rem;
+        header {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 20px 28px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        header p {
+            margin: 6px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 32px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h2 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            color: #374151;
+        }
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .input-section input {
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: 0.2s;
+        }
+        .input-section input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .muted {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        button {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .result-section {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 28px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .result-label {
+            font-size: 13px;
+            color: #059669;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .result-category {
+            font-size: 32px;
+            font-weight: 700;
+            color: #065f46;
+            margin: 12px 0;
+        }
+        .result-code {
+            font-size: 20px;
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .result-confidence {
+            font-size: 48px;
+            font-weight: 700;
+            color: #059669;
+            margin: 12px 0;
+        }
+        .confidence-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .prediction-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: default;
+            position: relative;
+        }
+        .prediction-card:first-child {
+            border-width: 3px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        .prediction-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.15);
+        }
+        .prediction-rank {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #10b981;
+            text-transform: uppercase;
+            background: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .prediction-card:first-child .prediction-rank {
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            color: white;
+        }
+        .pred-code {
+            font-size: 18px;
+            color: #10b981;
+            font-weight: 600;
+            margin: 12px 0 8px 0;
+        }
+        .pred-category {
+            font-size: 16px;
+            font-weight: 700;
+            color: #065f46;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        .pred-confidence {
+            font-size: 24px;
+            font-weight: 700;
+            color: #059669;
+            margin: 12px 0 4px 0;
+        }
+        .pred-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .error-section {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            border-radius: 12px;
+            padding: 20px;
+            color: #991b1b;
+            margin-top: 20px;
+        }
+        .expand-btn {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .details-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .details-section.active {
+            display: block;
+            animation: slideDown 0.3s;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .detail-subsection {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            border-left: 4px solid #4f46e5;
+        }
+        .detail-subsection h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 600;
+        }
+        .detail-text {
+            font-size: 13px;
+            line-height: 1.6;
             color: #6b7280;
         }
-        
-        .rank-probability {
-            font-weight: 700;
-            color: var(--primary);
+        .evidence-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
         }
-        
-        .loading-spinner {
-            text-align: center;
-            padding: 2rem;
-        }
-        
-        .spinner-text {
-            margin-top: 1rem;
-            color: #666;
-            font-weight: 500;
-        }
-        
-        .tab-content {
-            border-radius: 0 0 15px 15px;
-            padding: 2rem;
-        }
-        
-        .nav-tabs .nav-link {
-            color: #666;
-            border: none;
-            border-bottom: 3px solid transparent;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .nav-tabs .nav-link.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-            background: transparent;
-        }
-        
-        .example-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .example-card:hover {
-            border-color: var(--primary);
-            background: #f8fafc;
-        }
-        
-        .example-title {
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .example-desc {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-        
-        .example-genes {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        
-        .gene-tag {
-            background: var(--primary);
-            color: white;
-            padding: 0.3rem 0.7rem;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        
-        .error-box {
-            background: #fee2e2;
-            border-left: 4px solid #ef4444;
-            padding: 1.5rem;
-            border-radius: 10px;
-            color: #991b1b;
-        }
-        
-        .success-box {
-            background: #dcfce7;
-            border-left: 4px solid #10b981;
-            padding: 1.5rem;
-            border-radius: 10px;
-            color: #166534;
-        }
-        
-        .footer {
-            background: rgba(0,0,0,0.1);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            margin-top: 3rem;
-            border-top: 2px solid rgba(255,255,255,0.2);
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        .status-online {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .status-offline {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .input-group input {
-            border-radius: 10px;
-            border: 2px solid #e5e7eb;
-        }
-        
-        .input-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
-        }
-        
-        .batch-drug-item {
+        .evidence-item {
             background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            border: 2px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
         }
-        
-        .drug-name-input {
+        .evidence-label {
+            font-size: 11px;
+            color: #6b7280;
             font-weight: 600;
-            color: var(--primary);
+            text-transform: uppercase;
+        }
+        .evidence-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 6px;
+        }
+        .qa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .qa-box {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+        .qa-box:hover {
+            border-color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+        }
+        .qa-question {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .qa-question::before {
+            content: "❓";
+            font-size: 16px;
+        }
+        .qa-answer {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #6b7280;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+        .chat-section {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+        .chat-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 12px;
+        }
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+        .chat-message {
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .chat-message.user {
+            background: #dbeafe;
+            color: #1e40af;
+            text-align: right;
+        }
+        .chat-message.agent {
+            background: white;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        .chat-input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+        .chat-input-wrapper input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .chat-input-wrapper button {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        .loading-indicator {
+            text-align: center;
+            padding: 16px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .loading-indicator::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        .txagent-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-light sticky-top">
-        <div class="container-fluid">
-            <span class="navbar-brand">
-                <i class="fas fa-pill"></i> Drug Category Predictor
-            </span>
-            <span id="status" class="status-badge status-offline">
-                <i class="fas fa-circle"></i> Connecting...
-            </span>
+
+<header>
+    <h1>Drug Category Prediction</h1>
+    <p>Predict therapeutic category from target genes • Powered by Scikit-learn Agent (Free & Local)</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Gene Input</h2>
+        <div class="input-section">
+            <input id="geneInput" type="text" placeholder="Paste genes (comma-separated). Example: CACNA1B, ADORA1, KCNQ3, KCNQ5">
+            <div class="muted">Gene names are case-insensitive</div>
+            <button id="predictBtn" type="button">Predict Category</button>
         </div>
-    </nav>
+    </div>
 
-    <div class="container-main">
-        <div class="row">
-            <div class="col-lg-8 offset-lg-2">
-                <!-- Tabs -->
-                <div class="card">
-                    <ul class="nav nav-tabs card-header" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#predict-tab">
-                                <i class="fas fa-search"></i> Predict
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#batch-tab">
-                                <i class="fas fa-layer-group"></i> Batch
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#examples-tab">
-                                <i class="fas fa-star"></i> Examples
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#info-tab">
-                                <i class="fas fa-info-circle"></i> Info
-                            </a>
-                        </li>
-                    </ul>
+    <!-- Result Section -->
+    <div id="resultSection" style="display: none;">
+        <div class="results-grid" id="resultsGrid">
+            <!-- Will be populated by JavaScript with top 3 predictions -->
+        </div>
+        <button id="expandBtn" class="expand-btn" type="button">View Details</button>
+    </div>
 
-                    <!-- TAB 1: PREDICT -->
-                    <div id="predict-tab" class="tab-pane fade show active">
-                        <div class="tab-content">
-                            <h5 class="mb-3">Enter Target Genes</h5>
-                            
-                            <div class="mb-3">
-                                <label for="gene-input" class="form-label">Target Genes (comma-separated)</label>
-                                <div class="input-group">
-                                    <input type="text" id="gene-input" class="form-control" 
-                                        placeholder="e.g., TP53, EGFR, BRCA1">
-                                    <button class="btn btn-predict text-white" type="button" id="add-gene-btn">
-                                        <i class="fas fa-plus"></i> Add
-                                    </button>
-                                </div>
-                                <small class="text-muted">Gene names are case-insensitive</small>
-                            </div>
+    <!-- Error Section -->
+    <div id="errorSection" style="display: none;">
+        <div class="error-section">
+            <strong>❌ Error</strong>
+            <p id="errorMessage" style="margin: 8px 0 0 0; font-size: 14px;"></p>
+        </div>
+    </div>
 
-                            <!-- Selected Genes -->
-                            <div id="selected-genes" class="mb-3">
-                                <!-- Genes will appear here -->
-                            </div>
+    <!-- Details Section (Hidden by default) -->
+    <div id="detailsSection" class="details-section">
+        <!-- Summary -->
+        <div class="detail-subsection">
+            <h3>📋 Summary</h3>
+            <div class="detail-text" id="summaryText">-</div>
+        </div>
 
-                            <!-- Top-K Selection -->
-                            <div class="mb-3">
-                                <label for="top-k" class="form-label">Top Predictions</label>
-                                <select id="top-k" class="form-select">
-                                    <option value="3">Top 3</option>
-                                    <option value="5" selected>Top 5</option>
-                                    <option value="7">Top 7</option>
-                                </select>
-                            </div>
-
-                            <!-- Predict Button -->
-                            <button id="predict-btn" class="btn btn-predict text-white w-100" style="padding: 0.75rem;">
-                                <i class="fas fa-magic"></i> Predict Category
-                            </button>
-
-                            <!-- Results -->
-                            <div id="results-container" class="mt-4">
-                                <!-- Results will appear here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 2: BATCH -->
-                    <div id="batch-tab" class="tab-pane fade">
-                        <div class="tab-content">
-                            <h5 class="mb-3">Batch Prediction</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Add Drugs</label>
-                                <div class="input-group mb-2">
-                                    <input type="text" id="drug-name" class="form-control" 
-                                        placeholder="Drug name (e.g., Aspirin)">
-                                    <input type="text" id="batch-genes" class="form-control" 
-                                        placeholder="Genes (comma-separated)">
-                                    <button class="btn btn-predict text-white" type="button" id="add-drug-btn">
-                                        <i class="fas fa-plus"></i> Add
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Drug List -->
-                            <div id="batch-drugs" class="mb-3">
-                                <!-- Drugs will appear here -->
-                            </div>
-
-                            <!-- Batch Predict Button -->
-                            <button id="batch-predict-btn" class="btn btn-predict text-white w-100" style="padding: 0.75rem;">
-                                <i class="fas fa-rocket"></i> Predict All
-                            </button>
-
-                            <!-- Batch Results -->
-                            <div id="batch-results" class="mt-4">
-                                <!-- Results will appear here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 3: EXAMPLES -->
-                    <div id="examples-tab" class="tab-pane fade">
-                        <div class="tab-content">
-                            <h5 class="mb-3">Example Predictions</h5>
-                            <p class="text-muted">Click on an example to load and predict</p>
-                            
-                            <div id="examples-container" class="row">
-                                <!-- Examples will load here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TAB 4: INFO -->
-                    <div id="info-tab" class="tab-pane fade">
-                        <div class="tab-content">
-                            <h5 class="mb-3">About This System</h5>
-                            
-                            <div class="alert alert-info">
-                                <h6>NeSy Drug Category Prediction</h6>
-                                <p>This system predicts drug therapeutic categories based on target genes using a machine learning model trained on the DrugBank database and brain gene expression data.</p>
-                            </div>
-
-                            <h6>ATC Categories</h6>
-                            <div id="categories-list" class="small">
-                                <!-- Categories will load here -->
-                            </div>
-
-                            <hr>
-                            
-                            <h6>How It Works</h6>
-                            <ol class="small">
-                                <li>Enter target genes for a drug</li>
-                                <li>System extracts expression features from brain data</li>
-                                <li>ML model predicts therapeutic category</li>
-                                <li>Results show confidence scores</li>
-                            </ol>
-
-                            <hr>
-                            
-                            <h6>System Info</h6>
-                            <div id="system-info" class="text-muted small">
-                                Loading...
-                            </div>
-                        </div>
-                    </div>
+        <!-- Evidence -->
+        <div class="detail-subsection">
+            <h3>🧬 Evidence Metrics</h3>
+            <div class="evidence-items">
+                <div class="evidence-item">
+                    <div class="evidence-label">Brain Expression</div>
+                    <div class="evidence-value" id="besMetric">-</div>
+                </div>
+                <div class="evidence-item">
+                    <div class="evidence-label">Specificity</div>
+                    <div class="evidence-value" id="bsrMetric">-</div>
+                </div>
+                <div class="evidence-item">
+                    <div class="evidence-label">Gene Found</div>
+                    <div class="evidence-value" id="coverageMetric">-</div>
+                </div>
+                <div class="evidence-item">
+                    <div class="evidence-label">CNS Score</div>
+                    <div class="evidence-value" id="cnsMetric">-</div>
                 </div>
             </div>
         </div>
+
+        <!-- Reasoning Steps -->
+        <div class="detail-subsection">
+            <h3>⚙️ Reasoning Steps</h3>
+            <div id="reasoningStepsDetail" class="detail-text">Processing...</div>
+        </div>
+
+        <!-- TxAgent Q&A Section -->
+        <div class="detail-subsection">
+            <h3>🧠 Scikit-learn Agent Analysis<span class="txagent-badge">FREE • LOCAL</span></h3>
+            <div class="qa-grid" id="qaGrid">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            <div style="margin-top:24px;">
+                <h3 style="font-size:15px;color:#374151;font-weight:600;margin-bottom:8px;">Agent's Full Answer</h3>
+                <div id="txagentAnswer" style="background:#f9fafb;border-radius:8px;padding:16px;border:1px solid #e5e7eb;font-size:14px;color:#374151;white-space:pre-wrap;"></div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="footer">
-        <p><strong>Drug Category Prediction System</strong> | Based on NeSy Architecture</p>
-        <p>Built with Flask API, Bootstrap 5, and modern web technologies</p>
+<footer>
+        Powered by Scikit-learn Agent (Free & Local) • Modular NeSy system: integrates DrugBank, DRUGseqr, and brain scRNA-seq data.<br>
+        <button id="modelInfoBtn" style="margin-top:8px; padding:4px 12px; font-size:1em;">Model Info</button>
+</footer>
+
+<!-- Model Info Modal -->
+<div id="modelInfoModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background:#fff; margin:5% auto; padding:24px; border-radius:8px; max-width:600px; position:relative;">
+        <span id="closeModelInfo" style="position:absolute; top:12px; right:18px; font-size:1.5em; cursor:pointer;">&times;</span>
+        <h2>About the Model</h2>
+        <p><strong>System:</strong> Neuro-Symbolic (NeSy) pipeline for drug category prediction based on gene expression in brain regions.</p>
+        <ul>
+            <li><strong>Architecture:</strong> Modular, 7 main tasks (gene expression, drug targets, ATC hierarchy, feature integration, CNS classifier, ATC classifier, evaluation).</li>
+            <li><strong>Data sources:</strong> DrugBank XML, DRUGseqr.gmt, single-cell RNA-seq brain data.</li>
+            <li><strong>Stage 1:</strong> CNS/Non-CNS classifier (Gradient Boosting, accuracy: 0.89).</li>
+            <li><strong>Stage 2:</strong> ATC category classifier (Random Forest, accuracy: 0.47, 14 classes).</li>
+            <li><strong>Explainability:</strong> Top-k predictions, feature importance, brain evidence metrics (BES, BSR, CNS score), gene coverage, closest drugs, and reasoning steps.</li>
+            <li><strong>Outputs:</strong> All results and explanations are consistent between the web interface and CLI.</li>
+        </ul>
+        <p>For more details, see the <code>PROJECT_REPORT.md</code> in the repository.</p>
     </div>
+</div>
+<script>
+    // Model Info Modal logic
+    const modelInfoBtn = document.getElementById('modelInfoBtn');
+    const modelInfoModal = document.getElementById('modelInfoModal');
+    const closeModelInfo = document.getElementById('closeModelInfo');
+    if (modelInfoBtn && modelInfoModal && closeModelInfo) {
+        modelInfoBtn.onclick = () => { modelInfoModal.style.display = 'block'; };
+        closeModelInfo.onclick = () => { modelInfoModal.style.display = 'none'; };
+        window.onclick = (event) => {
+            if (event.target === modelInfoModal) modelInfoModal.style.display = 'none';
+        };
+    }
+</script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const API_URL = 'http://localhost:5000/api';
-        let selectedGenes = [];
-        let batchDrugs = {};
 
-        // Check API health
-        async function checkHealth() {
-            try {
-                const response = await fetch(`${API_URL}/health`);
-                const data = await response.json();
-                
-                const status = document.getElementById('status');
-                if (response.ok) {
-                    status.className = 'status-badge status-online';
-                    status.innerHTML = '<i class="fas fa-circle"></i> Online';
-                    
-                    // Load categories and system info
-                    loadCategories();
-                    loadSystemInfo(data);
-                    loadExamples();
-                } else {
-                    status.className = 'status-badge status-offline';
-                    status.innerHTML = '<i class="fas fa-circle"></i> Error';
-                }
-            } catch (error) {
-                console.error('Health check failed:', error);
-                const status = document.getElementById('status');
-                status.className = 'status-badge status-offline';
-                status.innerHTML = '<i class="fas fa-circle"></i> Offline';
-            }
+
+<script>
+    const API_URL = 'http://localhost:5000/api';
+
+
+    // Set text helper
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    }
+
+    // Display top predictions using backend fields
+    function displayTopPredictions(predictions) {
+        const grid = document.getElementById('resultsGrid');
+        if (!grid) return;
+        grid.innerHTML = predictions.map((pred, idx) => `
+            <div class="prediction-card">
+                <div class="prediction-rank">#${idx + 1}</div>
+                <div class="pred-label">ATC Category</div>
+                <div class="pred-code">${pred.category_code}</div>
+                <div class="pred-category">${pred.category_name}</div>
+                <div class="pred-confidence">${Math.round(pred.probability * 100)}%</div>
+                <div class="pred-label">Confidence</div>
+            </div>
+        `).join('');
+    }
+
+    // Predict and display all details from backend
+    async function predict() {
+        const input = document.getElementById('geneInput').value.trim();
+        if (!input) {
+            alert('Please enter genes');
+            return;
         }
-
-        // Add gene to selection
-        document.getElementById('add-gene-btn').addEventListener('click', function() {
-            const input = document.getElementById('gene-input');
-            const genes = input.value.split(',').map(g => g.trim().toUpperCase()).filter(g => g);
-            
-            genes.forEach(gene => {
-                if (!selectedGenes.includes(gene)) {
-                    selectedGenes.push(gene);
-                }
+        const genes = input.split(',').map(g => g.trim().toUpperCase()).filter(Boolean);
+        if (!genes.length) {
+            alert('Please enter valid genes');
+            return;
+        }
+        const btn = document.getElementById('predictBtn');
+        const resultSection = document.getElementById('resultSection');
+        const errorSection = document.getElementById('errorSection');
+        const detailsSection = document.getElementById('detailsSection');
+        btn.disabled = true;
+        btn.textContent = 'Predicting...';
+        resultSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        detailsSection.classList.remove('active');
+        try {
+            const predRes = await fetch(`${API_URL}/predict`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ genes, top_k: 5 })
             });
-            
-            input.value = '';
-            displaySelectedGenes();
-        });
-
-        // Display selected genes
-        function displaySelectedGenes() {
-            const container = document.getElementById('selected-genes');
-            
-            if (selectedGenes.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            container.innerHTML = '<div class="mb-3"><strong>Selected Genes:</strong><br>' +
-                selectedGenes.map(gene => 
-                    `<span class="gene-badge">${gene}<span class="remove" onclick="removeGene('${gene}')">×</span></span>`
-                ).join('') +
-                `<br><button class="btn btn-sm btn-outline-danger mt-2" onclick="selectedGenes = []; displaySelectedGenes();">Clear All</button></div>`;
+            if (!predRes.ok) throw new Error('Prediction failed');
+            const predData = await predRes.json();
+            if (predData.error || !predData.primary_prediction) throw new Error(predData.error || 'No prediction');
+            // Show results - display top 3 predictions
+            const topPredictions = predData.top_predictions || [predData.primary_prediction];
+            displayTopPredictions(topPredictions.slice(0, 3));
+            resultSection.style.display = 'block';
+            // Populate details directly from backend fields
+            populateDetails(predData);
+        } catch (error) {
+            setText('errorMessage', error.message);
+            errorSection.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Predict Category';
         }
+    }
 
-        // Remove gene
-        function removeGene(gene) {
-            selectedGenes = selectedGenes.filter(g => g !== gene);
-            displaySelectedGenes();
-        }
-
-        // Predict
-        document.getElementById('predict-btn').addEventListener('click', async function() {
-            if (selectedGenes.length === 0) {
-                alert('Please add at least one gene');
-                return;
-            }
-            
-            const topK = document.getElementById('top-k').value;
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Predicting...';
-            
-            try {
-                const response = await fetch(`${API_URL}/predict`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ genes: selectedGenes, top_k: parseInt(topK) })
-                });
-                
-                const result = await response.json();
-                displayResults(result);
-            } catch (error) {
-                alert('Error: ' + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-magic"></i> Predict Category';
-            }
-        });
-
-        // Display results
-        function displayResults(result) {
-            const container = document.getElementById('results-container');
-            
-            if (result.error) {
-                container.innerHTML = `<div class="error-box"><strong>Error:</strong> ${result.error}</div>`;
-                return;
-            }
-            
-            if (!result.success) {
-                container.innerHTML = `<div class="error-box"><strong>Error:</strong> Prediction failed</div>`;
-                return;
-            }
-            
-            const primary = result.primary_prediction;
-            
-            let html = `
-                <div class="prediction-primary">
-                    <h5><i class="fas fa-target"></i> Primary Prediction</h5>
-                    <h3>${primary.category_name}</h3>
-                    <p class="mb-0"><strong>Code:</strong> ${primary.category_code}</p>
-                    <p><strong>Confidence:</strong> <span style="font-size: 1.3rem; color: var(--success);">${(primary.probability * 100).toFixed(1)}%</span></p>
-                </div>
-                
-                ${result.brain_evidence ? `
-                <div class="alert ${result.brain_evidence.bsf ? 'alert-success' : 'alert-warning'} mt-3">
-                    <h6><i class="fas fa-brain"></i> Brain Evidence Analysis</h6>
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <strong>Expression Strength (BES)</strong><br>
-                            <span style="font-size: 1.2rem; color: ${result.brain_evidence.bes >= 0.3 ? 'green' : 'orange'};">${result.brain_evidence.bes.toFixed(3)}</span>
-                            <small class="d-block text-muted">Threshold: ${result.brain_evidence.tau_strength}</small>
-                        </div>
-                        <div class="col-md-4">
-                            <strong>Specificity Ratio (BSR)</strong><br>
-                            <span style="font-size: 1.2rem; color: ${result.brain_evidence.bsr >= 1.0 ? 'green' : 'orange'};">${result.brain_evidence.bsr === Infinity ? '∞' : result.brain_evidence.bsr.toFixed(3)}</span>
-                            <small class="d-block text-muted">Threshold: ${result.brain_evidence.tau_ratio}</small>
-                        </div>
-                        <div class="col-md-4">
-                            <strong>Evidence Status</strong><br>
-                            <span class="badge ${result.brain_evidence.bsf ? 'bg-success' : 'bg-warning'}" style="font-size: 1rem;">
-                                ${result.brain_evidence.bsf ? 'SUFFICIENT' : 'INSUFFICIENT'}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <small><strong>Interpretation:</strong> ${result.brain_evidence.interpretation}</small>
-                    </div>
-                </div>
-                ` : ''}
-            `;
-            
-            html += '<h6 class="mt-4">All Predictions</h6>';
-            result.top_predictions.forEach((pred, idx) => {
-                const rankClass = idx < 3 ? `rank-${idx + 1}` : '';
-                const width = Math.min(pred.probability * 100, 100);
-                
-                html += `
-                    <div class="category-rank ${rankClass}">
-                        <div class="rank-number">#${idx + 1}</div>
-                        <div class="rank-info" style="flex: 1;">
-                            <div class="rank-category">${pred.category_name}</div>
-                            <div class="rank-code">${pred.category_code}</div>
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" style="width: ${width}%"></div>
-                            </div>
-                        </div>
-                        <div class="rank-probability">${(pred.probability * 100).toFixed(1)}%</div>
-                    </div>
-                `;
+    // Populate details using backend fields only
+    function populateDetails(data) {
+        // Summary section
+        let html = '';
+        const primary = data.primary_prediction || {};
+        html += `<div style="margin-bottom:12px;"><strong>Predicted Category:</strong> ${primary.category_name || '-'} (${primary.category_code || '-'})<br>`;
+        html += `<strong>Confidence:</strong> ${primary.probability !== undefined ? (primary.probability * 100).toFixed(0) + '%' : '-'}<br></div>`;
+        html += `<div style="margin-bottom:12px;"><strong>Genes Used:</strong> ${(data.genes_used || []).join(', ') || '-'}</div>`;
+        html += `<div style="margin-bottom:12px;"><strong>Gene Coverage:</strong> ${data.gene_coverage !== undefined ? (data.gene_coverage * 100).toFixed(0) + '%' : '-'}<br></div>`;
+        // Evidence metrics
+        const be = data.brain_evidence || {};
+        html += `<div style="margin-bottom:12px;"><strong>BES:</strong> ${be.bes !== undefined ? be.bes.toFixed(2) : '-'}<br>`;
+        html += `<strong>BSR:</strong> ${be.bsr !== undefined ? be.bsr.toFixed(2) : '-'}<br>`;
+        html += `<strong>BSF:</strong> ${be.bsf !== undefined ? (be.bsf ? 'Sufficient' : 'Insufficient') : '-'}<br></div>`;
+        // CNS classification
+        const cns = data.cns_classification || {};
+        html += `<div style="margin-bottom:12px;"><strong>CNS Score:</strong> ${cns.cns_probability !== undefined ? cns.cns_probability.toFixed(2) : '-'}<br>`;
+        html += `<strong>CNS Active:</strong> ${cns.is_cns_active !== undefined ? (cns.is_cns_active ? 'Yes' : 'No') : '-'}<br></div>`;
+        // Metric explanations
+        if (data.metric_explanations) {
+            html += `<div style="margin-bottom:12px;"><strong>Metric Explanations:</strong><ul style="margin:6px 0 0 16px;">`;
+            Object.values(data.metric_explanations).forEach(m => {
+                html += `<li><strong>${m.name}:</strong> ${m.description}</li>`;
             });
-            
-            container.innerHTML = html;
+            html += `</ul></div>`;
         }
-
-        // Add drug to batch
-        document.getElementById('add-drug-btn').addEventListener('click', function() {
-            const name = document.getElementById('drug-name').value.trim();
-            const genes = document.getElementById('batch-genes').value.split(',')
-                .map(g => g.trim().toUpperCase())
-                .filter(g => g);
-            
-            if (!name || genes.length === 0) {
-                alert('Please enter drug name and genes');
-                return;
-            }
-            
-            batchDrugs[name] = genes;
-            document.getElementById('drug-name').value = '';
-            document.getElementById('batch-genes').value = '';
-            displayBatchDrugs();
-        });
-
-        // Display batch drugs
-        function displayBatchDrugs() {
-            const container = document.getElementById('batch-drugs');
-            
-            if (Object.keys(batchDrugs).length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            for (const [name, genes] of Object.entries(batchDrugs)) {
-                html += `
-                    <div class="batch-drug-item">
-                        <div class="drug-name-input">${name}</div>
-                        <div class="text-muted small">Genes: ${genes.join(', ')}</div>
-                        <button class="btn btn-sm btn-outline-danger mt-2" onclick="removeDrug('${name}')">Remove</button>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
+        // Reasoning steps
+        if (data.explanation && data.explanation.reasoning_steps) {
+            html += `<div style="margin-bottom:12px;"><strong>Reasoning Steps:</strong><ul style="margin:6px 0 0 16px;">`;
+            data.explanation.reasoning_steps.forEach(step => {
+                html += `<li><strong>Step ${step.step}:</strong> ${step.name} - ${step.decision?.status || ''}</li>`;
+            });
+            html += `</ul></div>`;
         }
-
-        // Remove drug
-        function removeDrug(name) {
-            delete batchDrugs[name];
-            displayBatchDrugs();
+        // Closest drugs
+        if (data.explanation && data.explanation.txagent_explanation && data.explanation.txagent_explanation.closest_drugs) {
+            html += `<div style="margin-bottom:12px;"><strong>Most Similar Drugs (by target gene overlap):</strong><ul style="margin:6px 0 0 16px;">`;
+            data.explanation.txagent_explanation.closest_drugs.forEach(drug => {
+                html += `<li>${drug.name} (ID: ${drug.drug_id}, overlap: ${drug.overlap})</li>`;
+            });
+            html += `</ul></div>`;
         }
-
-        // Batch predict
-        document.getElementById('batch-predict-btn').addEventListener('click', async function() {
-            if (Object.keys(batchDrugs).length === 0) {
-                alert('Please add at least one drug');
-                return;
-            }
-            
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Predicting...';
-            
-            try {
-                const response = await fetch(`${API_URL}/predict-batch`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ drugs: batchDrugs, top_k: 3 })
-                });
-                
-                const results = await response.json();
-                displayBatchResults(results);
-            } catch (error) {
-                alert('Error: ' + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-rocket"></i> Predict All';
+        document.getElementById('summaryText').innerHTML = html;
+        // Reasoning steps (legacy section)
+        const steps = (data.explanation && data.explanation.reasoning_steps) || [];
+        let stepsHTML = '';
+        steps.forEach((step, i) => {
+            if (i < 4) {
+                const status = step.decision?.status || 'PENDING';
+                stepsHTML += `<p><strong>Step ${step.step}:</strong> ${step.name}<br/>`;
+                stepsHTML += `<em>${step.question || ''}</em><br/>`;
+                stepsHTML += `${status}</p>`;
             }
         });
-
-        // Display batch results
-        function displayBatchResults(results) {
-            const container = document.getElementById('batch-results');
-            let html = '';
-            
-            for (const [name, result] of Object.entries(results)) {
-                if (result.error) {
-                    html += `<div class="error-box"><strong>${name}:</strong> ${result.error}</div>`;
-                    continue;
-                }
-                
-                const primary = result.primary_prediction;
-                html += `
-                    <div class="prediction-box">
-                        <h6>${name}</h6>
-                        <p class="mb-1"><strong>Prediction:</strong> ${primary.category_name}</p>
-                        <p class="mb-0"><strong>Confidence:</strong> ${(primary.probability * 100).toFixed(1)}%</p>
-                    </div>
-                `;
-            }
-            
-            container.innerHTML = html;
+        document.getElementById('reasoningStepsDetail').innerHTML = stepsHTML || '<em>No reasoning available</em>';
+        // Agent's full answer (details)
+        const txagentAnswerEl = document.getElementById('txagentAnswer');
+        if (txagentAnswerEl && data.explanation && data.explanation.txagent_explanation) {
+            let answer = data.explanation.txagent_explanation.details || '-';
+            txagentAnswerEl.textContent = answer;
         }
-
-        // Load categories
-        async function loadCategories() {
-            try {
-                const response = await fetch(`${API_URL}/categories`);
-                const categories = await response.json();
-                
-                let html = '<div class="row">';
-                categories.forEach(cat => {
-                    html += `
-                        <div class="col-md-6 mb-2">
-                            <div class="p-2 bg-light rounded">
-                                <strong>${cat.code}</strong>: ${cat.name}
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                
-                document.getElementById('categories-list').innerHTML = html;
-            } catch (error) {
-                console.error('Failed to load categories:', error);
-            }
-        }
-
-        // Load system info
-        function loadSystemInfo(data) {
-            const info = `
-                <strong>Models Loaded:</strong> ${data.models_loaded ? '✓ Yes' : '✗ No'}<br>
-                <strong>Available Genes:</strong> ${data.num_genes.toLocaleString()}<br>
-                <strong>Categories:</strong> ${data.num_categories}<br>
-                <strong>Status:</strong> Ready for predictions
+        // Evidence metrics section
+        const evidenceItems = document.querySelector('.evidence-items');
+        if (evidenceItems) {
+            evidenceItems.innerHTML = `
+                <div class="evidence-item"><div class="evidence-label">Brain Expression (BES)</div><div class="evidence-value">${be.bes !== undefined ? be.bes.toFixed(2) : '-'}</div></div>
+                <div class="evidence-item"><div class="evidence-label">Specificity (BSR)</div><div class="evidence-value">${be.bsr !== undefined ? be.bsr.toFixed(2) : '-'}</div></div>
+                <div class="evidence-item"><div class="evidence-label">Gene Found</div><div class="evidence-value">${data.genes_found !== undefined ? data.genes_found : '-'}</div></div>
+                <div class="evidence-item"><div class="evidence-label">CNS Score</div><div class="evidence-value">${cns.cns_probability !== undefined ? cns.cns_probability.toFixed(2) : '-'}</div></div>
             `;
-            document.getElementById('system-info').innerHTML = info;
         }
+    }
 
-        // Load examples
-        async function loadExamples() {
-            try {
-                const response = await fetch(`${API_URL}/examples`);
-                const examples = await response.json();
-                
-                let html = '';
-                for (const [name, example] of Object.entries(examples)) {
-                    html += `
-                        <div class="col-md-6 mb-3">
-                            <div class="example-card" onclick="loadExample('${name}', ${JSON.stringify(example.genes).replace(/"/g, '&quot;')})">
-                                <div class="example-title">${name}</div>
-                                <div class="example-desc">${example.description}</div>
-                                <div class="example-genes">
-                                    ${example.genes.map(g => `<span class="gene-tag">${g}</span>`).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                document.getElementById('examples-container').innerHTML = html;
-            } catch (error) {
-                console.error('Failed to load examples:', error);
+    function populateQABoxes(data) {
+        const qaGrid = document.getElementById('qaGrid');
+        if (!qaGrid) return;
+        
+        const evidence = data.evidence_inputs || {};
+        const txExplain = data.txagent_explanation || {};
+        const steps = data.reasoning_steps || [];
+        
+        const qaData = [
+            {
+                question: "Why do these genes support this category?",
+                answer: generateGeneSupport(evidence, steps)
+            },
+            {
+                question: "What do the evidence metrics mean?",
+                answer: generateMetricsExplanation(evidence)
+            },
+            {
+                question: "How confident is this prediction?",
+                answer: generateConfidenceExplanation(txExplain)
+            },
+            {
+                question: "Is this drug likely CNS-active?",
+                answer: generateCNSExplanation(evidence)
             }
-        }
+        ];
+        
+        qaGrid.innerHTML = qaData.map(qa => `
+            <div class="qa-box">
+                <div class="qa-question">${qa.question}</div>
+                <div class="qa-answer">${qa.answer}</div>
+            </div>
+        `).join('');
+    }
 
-        // Load example
-        function loadExample(name, genes) {
-            selectedGenes = genes;
-            displaySelectedGenes();
-            
-            // Switch to predict tab
-            const tab = new bootstrap.Tab(document.querySelector('a[href="#predict-tab"]'));
-            tab.show();
+    function generateGeneSupport(evidence, steps) {
+        const coverage = evidence.gene_coverage || 0;
+        const bes = evidence.bes || 0;
+        
+        if (coverage > 0.5 && bes > 0.3) {
+            return `${(coverage * 100).toFixed(0)}% of the input genes were found in the brain expression database with strong expression levels (BES: ${bes.toFixed(2)}). This indicates these genes are actively expressed in relevant brain tissues, supporting the predicted category.`;
+        } else if (coverage > 0.3) {
+            return `${(coverage * 100).toFixed(0)}% of genes were identified with moderate brain expression. While the evidence is present, additional genes or stronger expression would further support the prediction.`;
+        } else {
+            return `Limited genes were found in the database. The prediction may be based on fewer molecular evidence points. Consider validating with additional genes or data sources.`;
         }
+    }
 
-        // Initialize
-        checkHealth();
-    </script>
+    function generateMetricsExplanation(evidence) {
+        const bes = evidence.bes || 0;
+        const bsr = evidence.bsr || 0;
+        const coverage = evidence.gene_coverage || 0;
+        
+        return `<strong>Brain Expression (BES):</strong> ${bes.toFixed(2)} - Average gene expression across brain cell types. Higher values (>0.3) indicate strong brain involvement.<br/>
+<strong>Specificity (BSR):</strong> ${bsr !== 'inf' && bsr < 999 ? bsr.toFixed(2) : 'N/A'} - Ratio of brain to non-brain expression. Values >1.0 suggest brain-specific activity.<br/>
+<strong>Gene Coverage:</strong> ${(coverage * 100).toFixed(0)}% - Percentage of input genes found in the expression database. Higher coverage improves prediction reliability.`;
+    }
+
+    function generateConfidenceExplanation(txExplain) {
+        const conf = txExplain.confidence || 0;
+        const evidenceLabel = txExplain.evidence_label || 'UNKNOWN';
+        
+        if (conf > 0.7) {
+            return `High confidence (${(conf * 100).toFixed(0)}%). The model prediction is strongly supported by ${evidenceLabel}. This is a reliable prediction with strong molecular evidence.`;
+        } else if (conf > 0.5) {
+            return `Moderate confidence (${(conf * 100).toFixed(0)}%). The prediction has reasonable support but consider alternative categories. Evidence is ${evidenceLabel}.`;
+        } else {
+            return `Lower confidence (${(conf * 100).toFixed(0)}%). Multiple categories may be equally plausible. Evidence level is ${evidenceLabel}. Recommend further validation.`;
+        }
+    }
+
+    function generateCNSExplanation(evidence) {
+        const cns = evidence.cns_score || 0;
+        const bes = evidence.bes || 0;
+        const bsr = evidence.bsr || 0;
+        const coverage = evidence.gene_coverage || 0;
+        
+        // Generate detailed explanation based on metrics
+        let explanation = `<strong>CNS Activity Prediction: ${(cns * 100).toFixed(0)}%</strong><br><br>`;
+        
+        // Gene analysis
+        explanation += `<strong>Gene Expression Profile:</strong><br>`;
+        if (coverage > 0.8) {
+            explanation += `✓ Strong gene database coverage (${(coverage * 100).toFixed(0)}%) - reliable prediction<br>`;
+        } else if (coverage > 0.5) {
+            explanation += `◐ Moderate gene coverage (${(coverage * 100).toFixed(0)}%) - prediction is reasonable<br>`;
+        } else {
+            explanation += `✗ Limited gene coverage (${(coverage * 100).toFixed(0)}%) - prediction has lower confidence<br>`;
+        }
+        
+        // BES interpretation
+        explanation += `<br><strong>Brain Expression Metrics:</strong><br>`;
+        if (bes > 0.4) {
+            explanation += `• BES = ${bes.toFixed(2)} (Strong brain concentration) - genes are highly expressed in brain tissues<br>`;
+        } else if (bes > 0.25) {
+            explanation += `• BES = ${bes.toFixed(2)} (Moderate brain concentration) - some brain expression detected<br>`;
+        } else {
+            explanation += `• BES = ${bes.toFixed(2)} (Weak brain concentration) - limited brain tissue involvement<br>`;
+        }
+        
+        // BSR interpretation
+        if (bsr > 2) {
+            explanation += `• BSR = ${bsr.toFixed(2)} (Brain-selective) - genes expressed primarily in brain, not peripheral tissues<br>`;
+        } else if (bsr > 1) {
+            explanation += `• BSR = ${bsr.toFixed(2)} (Mixed tissue) - genes expressed in brain AND other tissues<br>`;
+        } else {
+            explanation += `• BSR = ${bsr.toFixed(2)} (Peripheral-biased) - genes show more peripheral than brain expression<br>`;
+        }
+        
+        // CNS score interpretation
+        explanation += `<br><strong>Classification Result:</strong><br>`;
+        if (cns > 0.6) {
+            explanation += `<strong>High CNS Activity Expected</strong> - The combination of metrics indicates this drug is likely to affect the central nervous system. The target genes are brain-selective and strongly expressed in neural tissues. Consider potential CNS side effects in therapeutic use.`;
+        } else if (cns > 0.4) {
+            explanation += `<strong>Moderate CNS Activity Possible</strong> - Mixed evidence suggests the drug may have both CNS and peripheral effects. The genes show some brain involvement but also expression in non-neural tissues. Effects may be distributed across multiple systems.`;
+        } else if (cns > 0.2) {
+            explanation += `<strong>Low CNS Activity</strong> - The evidence suggests limited central nervous system involvement. The target genes are primarily expressed in peripheral tissues rather than brain. However, some minor CNS effects are not ruled out.`;
+        } else {
+            explanation += `<strong>Non-CNS Drug</strong> - The evidence strongly suggests this drug does not target the central nervous system. Target genes lack significant brain expression. Effects are expected to be localized to peripheral tissues (cardiovascular, GI, immune, etc.).`;
+        }
+        
+        explanation += `<br><br><em style="font-size: 0.9em; color: #666;">This prediction is based on target gene expression patterns in ${coverage > 0.8 ? 'your complete' : 'a partial'} gene set compared to a database of ${coverage > 0.8 ? '19,574' : '~19,000'} genes.</em>`;
+        
+        return explanation;
+    }
+
+    function toggleDetails() {
+        const section = document.getElementById('detailsSection');
+        const btn = document.getElementById('expandBtn');
+        
+        section.classList.toggle('active');
+        btn.textContent = section.classList.contains('active') ? 'Hide Details' : 'View Details';
+    }
+
+    document.getElementById('predictBtn').addEventListener('click', predict);
+    document.getElementById('geneInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') predict();
+    });
+    document.getElementById('expandBtn').addEventListener('click', toggleDetails);
+</script>
+
 </body>
 </html>
+

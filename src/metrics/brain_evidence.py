@@ -55,8 +55,8 @@ class BrainEvidenceMetrics:
         """
         Compute Brain Evidence Strength (BES).
         
-        Measures the average expression level across brain regions for target genes.
-        Higher BES indicates stronger molecular evidence in the brain.
+        Measures the median expression level across brain regions for target genes.
+        Using the median makes BES more robust to outliers and high-expression bias.
         
         Args:
             gene_expression: Dict mapping gene names to tissue->expression values.
@@ -64,25 +64,22 @@ class BrainEvidenceMetrics:
             brain_regions: List of brain region names (keys in gene_expression subdicts).
         
         Returns:
-            BES: Average expression across brain regions and genes, normalized to [0, 1].
+            BES: Median expression across brain regions and genes, normalized to [0, 1].
                 Returns 0.0 if no data is available.
         
         Notes:
-            - BES is computed as: mean(expression across all brain regions and genes)
+            - BES is computed as: median(expression across all brain regions and genes)
             - Values normalized to [0, 1] assuming expression values are already normalized
             - Genes without brain region data are skipped
         """
         brain_expressions = []
-        
         for gene, tissues in gene_expression.items():
             for region in brain_regions:
                 if region in tissues:
                     brain_expressions.append(tissues[region])
-        
         if not brain_expressions:
             return 0.0
-        
-        bes = float(np.mean(brain_expressions))
+        bes = float(np.median(brain_expressions))
         return np.clip(bes, 0.0, 1.0)
     
     def brain_specificity_ratio(

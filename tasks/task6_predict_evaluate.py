@@ -155,10 +155,20 @@ def execute(model: Any,
     
     # Generate predictions
     predictions, y_pred = predict_top_k(model, X_test, top_k)
-    
+
+    # Ensure y_pred and y_test are both string ATC codes for metrics
+    if hasattr(model, 'classes_'):
+        classes = np.array(model.classes_)
+        if np.issubdtype(y_pred.dtype, np.integer):
+            y_pred = classes[y_pred]
+        if np.issubdtype(y_test.dtype, np.integer):
+            y_test = classes[y_test]
+        class_names = classes.tolist()
+    else:
+        class_names = sorted(list(set(y_test)))
+
     # Calculate metrics
     print(f"\n  Calculating evaluation metrics...")
-    class_names = model.classes_.tolist()
     metrics = calculate_metrics(y_test, y_pred, class_names)
     
     # Print results
