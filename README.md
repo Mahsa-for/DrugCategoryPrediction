@@ -27,7 +27,7 @@ The pipeline consists of several stages:
 - **api_server.py**: Flask backend API for serving predictions and explanations to the web interface. Uses `interactive_predictor.py` for backend logic.
 
 ### Task Modules (`tasks/`)
-- **task1_brain_gene_expression.py**: Processes single-cell RNA-seq data to generate gene expression matrices for brain regions.
+- **task1_brain_gene_expression.py**: Processes single-cell RNA-seq data to generate gene expression matrices for brain cell cluster types.
 - **task2_extract_drug_targets.py**: Extracts drug target, enzyme, and transporter genes from DrugBank and DRUGseqr datasets.
 - **task3_fetch_atc_hierarchy.py**: Extracts ATC (Anatomical Therapeutic Chemical) hierarchy and categories for drugs.
 - **task4_integrate_gene_signatures.py**: Integrates gene expression and drug target data into feature vectors for each drug.
@@ -55,7 +55,7 @@ The pipeline consists of several stages:
 ## Workflow
 
 1. **Validation**: The system checks the existence and integrity of required datasets.
-2. **Gene Expression Processing**: Generates a matrix of gene expression across brain regions.
+2. **Gene Expression Processing**: Generates a matrix of gene expression across brain cell cluster types.
 3. **Drug Target Extraction**: Extracts all relevant genes for each drug from DrugBank and DRUGseqr.
 4. **ATC Hierarchy Extraction**: Assigns ATC categories to drugs.
 5. **Feature Integration**: Combines gene expression and drug target data into feature vectors.
@@ -80,4 +80,4 @@ The pipeline consists of several stages:
 ## Notes
 - All intermediate and final results are saved in the `results/` directory.
 - The system is modular; each task can be run and debugged independently.
-- For detailed explanations and reasoning, the system uses evidence agents and brain evidence metrics.
+ For detailed explanations and reasoning, the system uses evidence agents and brain evidence metrics (BES, BSR) based on brain cell cluster types.
