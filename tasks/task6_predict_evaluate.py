@@ -216,40 +216,108 @@ def execute(model: Any,
         output_dir / 'task6_confusion_matrix.png'
     )
     print(f"\n  ✓ Saved confusion matrix plot")
-    
+
     # Plot per-class metrics
     plot_per_class_metrics(
         report,
         output_dir / 'task6_per_class_metrics.png'
     )
     print(f"  ✓ Saved per-class metrics plot")
+
+    # --- Additional Visualizations ---
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    # 1. Bar plot: Top-k accuracy (if available)
+    topk_accs = [(k, metrics[f'top_{k}_accuracy']) for k in [2, 3, 5] if f'top_{k}_accuracy' in metrics]
+    if topk_accs:
+        plt.figure(figsize=(6, 4))
+        ks, accs = zip(*topk_accs)
+        plt.bar([f'Top-{k}' for k in ks], accs, color='mediumseagreen')
+        plt.ylim(0, 1)
+        plt.ylabel('Accuracy')
+        plt.title('Top-k Accuracy')
+        plt.tight_layout()
+        plt.savefig(output_dir / 'task6_topk_accuracy.png')
+        plt.close()
+
+    # 2. Pie chart: Class distribution in test set
+    unique, counts = np.unique(y_test, return_counts=True)
+    plt.figure(figsize=(7, 7))
+    plt.pie(counts, labels=unique, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+    plt.title('Class Distribution in Test Set')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task6_test_class_distribution_pie.png')
+    plt.close()
+
+    # 3. Bar plot: Correct vs Incorrect predictions
+    # 4. Boxplot: Confidence scores for correct vs incorrect predictions
+    # Only plot if correct_count and incorrect_count are valid
+    correct_count = 0
+    incorrect_count = 0
+    if y_test is not None and y_pred is not None and len(y_test) == len(y_pred):
+        correct_mask = y_test == y_pred
+        correct_count = correct_mask.sum()
+        incorrect_count = (~correct_mask).sum()
+
+        plt.figure(figsize=(5, 4))
+        plt.bar(['Correct', 'Incorrect'], [correct_count, incorrect_count], color=['#4f8cff', '#ffb347'])
+        plt.ylabel('Number of Predictions')
+        plt.title('Prediction Outcome Counts')
+        plt.tight_layout()
+        plt.savefig(output_dir / 'task6_prediction_outcome_counts.png')
+        plt.close()
+
+        confs_correct = [pred['top_1_prob'] for i, pred in enumerate(predictions) if y_test[i] == pred['top_1_class']]
+        confs_incorrect = [pred['top_1_prob'] for i, pred in enumerate(predictions) if y_test[i] != pred['top_1_class']]
+        plt.figure(figsize=(7, 5))
+        plt.boxplot([confs_correct, confs_incorrect], labels=['Correct', 'Incorrect'], patch_artist=True, boxprops=dict(facecolor='lightblue'))
+        plt.ylabel('Confidence Score')
+        plt.title('Confidence Scores: Correct vs Incorrect Predictions')
+        plt.tight_layout()
+        plt.savefig(output_dir / 'task6_confidence_boxplot.png')
+        plt.close()
+
+    # 5. Heatmap: Per-class F1-scores
+    f1s = [report[c]['f1-score'] for c in class_names if c in report]
+    plt.figure(figsize=(10, 2))
+    sns.heatmap([f1s], annot=True, cmap='YlGnBu', xticklabels=class_names, yticklabels=['F1-Score'])
+    plt.title('Per-Class F1-Scores')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task6_per_class_f1_heatmap.png')
+    plt.close()
     
+
     # Find best and worst predictions
-    correct_mask = y_test == y_pred
-    correct_count = correct_mask.sum()
-    incorrect_count = (~correct_mask).sum()
-    
-    print(f"\n  Prediction Summary:")
-    print(f"    Correct predictions:   {correct_count} ({correct_count/len(y_test)*100:.1f}%)")
-    print(f"    Incorrect predictions: {incorrect_count} ({incorrect_count/len(y_test)*100:.1f}%)")
-    
+    correct_count = 0
+    incorrect_count = 0
+    if y_test is not None and y_pred is not None and len(y_test) == len(y_pred):
+        correct_mask = y_test == y_pred
+        correct_count = correct_mask.sum()
+        incorrect_count = (~correct_mask).sum()
+
+        print(f"\n  Prediction Summary:")
+        print(f"    Correct predictions:   {correct_count} ({correct_count/len(y_test)*100:.1f}%)")
+        print(f"    Incorrect predictions: {incorrect_count} ({incorrect_count/len(y_test)*100:.1f}%)")
+    else:
+        print("\n  Prediction Summary: Unable to compute correct/incorrect counts (mismatched lengths or missing data)")
+
     # Save example predictions
     example_predictions = []
     for i in range(min(20, len(predictions))):
         pred = predictions[i]
         example_predictions.append({
             'sample_idx': i,
-            'true_class': y_test[i],
+            'true_class': y_test[i] if y_test is not None and i < len(y_test) else None,
             'predicted_class': pred['top_1_class'],
             'confidence': pred['top_1_prob'],
-            'correct': y_test[i] == pred['top_1_class'],
+            'correct': (y_test[i] == pred['top_1_class']) if y_test is not None and i < len(y_test) else None,
             'top_2_class': pred.get('top_2_class', ''),
             'top_2_prob': pred.get('top_2_prob', 0.0)
         })
-    
+
     example_df = pd.DataFrame(example_predictions)
     example_df.to_csv(output_dir / 'task6_example_predictions.csv', index=False)
-    
+
     print(f"\n  ✓ Saved example predictions (first 20 samples)")
     
     return predictions, metrics

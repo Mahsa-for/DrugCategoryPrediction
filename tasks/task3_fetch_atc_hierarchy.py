@@ -180,6 +180,14 @@ def execute(drugbank_xml: str, output_dir: Path) -> pd.DataFrame:
     plt.savefig(output_dir / 'task3_atc_level1_distribution.png')
     plt.close()
 
+    # 1b. Pie chart for ATC Main Group (Level 1)
+    plt.figure(figsize=(8, 8))
+    plt.pie(level1_counts.values, labels=labels, autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+    plt.title('ATC Main Group (Level 1) Distribution (Pie Chart)')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_atc_level1_pie.png')
+    plt.close()
+
     # 2. Number of ATC codes per drug
     drugs_multi_atc = atc_df.groupby('drug_id').size()
     plt.figure(figsize=(8, 5))
@@ -189,6 +197,15 @@ def execute(drugbank_xml: str, output_dir: Path) -> pd.DataFrame:
     plt.ylabel('Number of Drugs')
     plt.tight_layout()
     plt.savefig(output_dir / 'task3_atc_codes_per_drug.png')
+    plt.close()
+
+    # 2b. Boxplot for number of ATC codes per drug
+    plt.figure(figsize=(6, 4))
+    plt.boxplot(drugs_multi_atc.values, vert=False, patch_artist=True, boxprops=dict(facecolor='lightblue'))
+    plt.title('Boxplot: Number of ATC Codes per Drug')
+    plt.xlabel('ATC Codes per Drug')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_atc_codes_per_drug_boxplot.png')
     plt.close()
 
     # 3. Unique categories per ATC level
@@ -209,6 +226,40 @@ def execute(drugbank_xml: str, output_dir: Path) -> pd.DataFrame:
     plt.tight_layout()
     plt.savefig(output_dir / 'task3_unique_categories_per_level.png')
     plt.close()
+
+    # 3b. Line plot for unique categories per ATC level
+    plt.figure(figsize=(6, 4))
+    plt.plot(level_stats_df['level'], level_stats_df['unique_categories'], marker='o', color='purple')
+    plt.title('Unique Categories per ATC Level (Line Plot)')
+    plt.xlabel('ATC Level')
+    plt.ylabel('Number of Unique Categories')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_unique_categories_per_level_line.png')
+    plt.close()
+
+    # 4. Top 10 most frequent ATC codes (full_code)
+    top_atc = atc_df['atc_code'].value_counts().head(10)
+    plt.figure(figsize=(10, 5))
+    plt.bar(top_atc.index, top_atc.values, color='goldenrod')
+    plt.title('Top 10 Most Frequent ATC Codes')
+    plt.xlabel('ATC Code')
+    plt.ylabel('Count')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task3_top10_atc_codes.png')
+    plt.close()
+
+    # 5. Heatmap: ATC Level 1 vs Level 2 (category co-occurrence)
+    if 'atc_level1' in atc_df.columns and 'atc_level2' in atc_df.columns:
+        pivot = atc_df.pivot_table(index='atc_level1', columns='atc_level2', values='drug_id', aggfunc='count', fill_value=0)
+        plt.figure(figsize=(12, 6))
+        import seaborn as sns
+        sns.heatmap(pivot, cmap='YlGnBu', linewidths=0.5)
+        plt.title('ATC Level 1 vs Level 2 Heatmap')
+        plt.xlabel('ATC Level 2')
+        plt.ylabel('ATC Level 1')
+        plt.tight_layout()
+        plt.savefig(output_dir / 'task3_atc_level1_vs_level2_heatmap.png')
+        plt.close()
 
     print(f"\n  Saved level statistics to: task3_atc_level_statistics.csv")
     return atc_df

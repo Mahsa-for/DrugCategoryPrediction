@@ -175,6 +175,7 @@ def execute(X: np.ndarray,
     best_model_name = max(results.keys(), key=lambda k: results[k]['cv_mean'])
     best_model = results[best_model_name]['model']
 
+
     # Save model comparison
     comparison_data = []
     for name, result in results.items():
@@ -191,6 +192,64 @@ def execute(X: np.ndarray,
     comparison_df = pd.DataFrame(comparison_data)
     comparison_df.to_csv(output_dir / 'task5a_model_comparison.csv', index=False)
     print(f"\n  Model comparison saved: task5a_model_comparison.csv")
+
+    # --- Visualizations ---
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    # 1. Bar plot: Model comparison (CV accuracy)
+    plt.figure(figsize=(8, 5))
+    sns.barplot(x='model', y='cv_accuracy', data=comparison_df, palette='Blues_d')
+    plt.title('CNS Classifier Model Comparison (CV Accuracy)')
+    plt.ylabel('CV Accuracy')
+    plt.xlabel('Model')
+    plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5a_model_comparison_bar.png')
+    plt.close()
+
+    # 2. Pie chart: Class distribution
+    plt.figure(figsize=(5, 5))
+    plt.pie([cns_count, non_cns_count], labels=['CNS', 'Non-CNS'], autopct='%1.1f%%', colors=['#4f8cff', '#ffb347'])
+    plt.title('CNS vs Non-CNS Class Distribution')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5a_class_distribution_pie.png')
+    plt.close()
+
+    # 3. Confusion matrix for best model (on train set)
+    from sklearn.metrics import confusion_matrix
+    X_scaled = scaler.transform(X)
+    y_pred = best_model.predict(X_scaled)
+    cm = confusion_matrix(y, y_pred)
+    plt.figure(figsize=(5, 4))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Non-CNS', 'CNS'], yticklabels=['Non-CNS', 'CNS'])
+    plt.title('Confusion Matrix (Train Set, Best Model)')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5a_confusion_matrix.png')
+    plt.close()
+
+    # 4. ROC curve for best model (on train set)
+    from sklearn.metrics import roc_curve, auc
+    if hasattr(best_model, 'predict_proba'):
+        y_score = best_model.predict_proba(X_scaled)[:, 1]
+    else:
+        y_score = best_model.decision_function(X_scaled)
+    fpr, tpr, _ = roc_curve(y, y_score)
+    roc_auc = auc(fpr, tpr)
+    plt.figure(figsize=(6, 5))
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC)')
+    plt.legend(loc='lower right')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5a_roc_curve.png')
+    plt.close()
 
     # Prepare metrics dictionary
     metrics = {

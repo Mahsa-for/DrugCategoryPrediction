@@ -194,8 +194,11 @@ def execute(brain_expression: pd.DataFrame,
     for _, row in feature_importance.head(10).iterrows():
         print(f"    {row['feature_name']}: {row['variance']:.4f}")
     
+
     # --- Plots for report ---
     import matplotlib.pyplot as plt
+    import seaborn as sns
+
     # 1. Feature variance (importance) bar plot
     plt.figure(figsize=(12, 6))
     feature_importance.head(20).plot(x='feature_name', y='variance', kind='bar', legend=False, color='dodgerblue')
@@ -207,15 +210,32 @@ def execute(brain_expression: pd.DataFrame,
     plt.savefig(output_dir / 'task4_top20_feature_importance.png')
     plt.close()
 
+    # 1b. Pie chart of variance contribution (top 10 features)
+    plt.figure(figsize=(8, 8))
+    top10 = feature_importance.head(10)
+    plt.pie(top10['variance'], labels=top10['feature_name'], autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+    plt.title('Top 10 Feature Variance Contribution (Pie Chart)')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_top10_feature_variance_pie.png')
+    plt.close()
+
     # 2. Heatmap of feature matrix (first 30 samples × first 30 features)
     plt.figure(figsize=(10, 8))
-    import seaborn as sns
     sns.heatmap(feature_matrix_scaled[:30, :30], cmap='viridis')
     plt.title('Feature Matrix Heatmap (First 30 Samples × 30 Features)')
     plt.xlabel('Feature Index')
     plt.ylabel('Sample Index')
     plt.tight_layout()
     plt.savefig(output_dir / 'task4_feature_matrix_heatmap.png')
+    plt.close()
+
+    # 2b. Boxplot of all features (distribution across all samples)
+    plt.figure(figsize=(14, 6))
+    plt.boxplot(feature_matrix_scaled, vert=False, patch_artist=True, boxprops=dict(facecolor='lightblue'))
+    plt.title('Boxplot: Distribution of All Features (Standardized)')
+    plt.xlabel('Value (Standardized)')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_feature_boxplot.png')
     plt.close()
 
     # 3. Distribution of BES and BSR values
@@ -230,6 +250,27 @@ def execute(brain_expression: pd.DataFrame,
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_dir / 'task4_bes_bsr_distribution.png')
+    plt.close()
+
+    # 3b. KDE plot for BES and BSR
+    plt.figure(figsize=(8, 5))
+    sns.kdeplot(feature_matrix_scaled[:, bes_idx], label='BES', fill=True, color='purple', alpha=0.5)
+    sns.kdeplot(feature_matrix_scaled[:, bsr_idx], label='BSR', fill=True, color='orange', alpha=0.5)
+    plt.title('KDE Plot of BES and BSR (Standardized)')
+    plt.xlabel('Value (Standardized)')
+    plt.ylabel('Density')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_bes_bsr_kde.png')
+    plt.close()
+
+    # 4. Correlation heatmap of features (first 30 features)
+    plt.figure(figsize=(12, 10))
+    corr = pd.DataFrame(feature_matrix_scaled[:, :30]).corr()
+    sns.heatmap(corr, cmap='coolwarm', center=0, annot=False)
+    plt.title('Correlation Heatmap (First 30 Features)')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task4_feature_correlation_heatmap.png')
     plt.close()
 
     return feature_matrix_scaled, valid_indices
