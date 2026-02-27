@@ -82,5 +82,4 @@ desktop.ini
 
 # Large datasets and generated outputs (GitHub size limits)
 dataset/
-results/
 drugbank_all_full_database.xml/
