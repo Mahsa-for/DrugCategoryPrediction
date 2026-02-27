@@ -31,14 +31,14 @@ The pipeline consists of several stages:
 - **task2_extract_drug_targets.py**: Extracts drug target, enzyme, and transporter genes from DrugBank and DRUGseqr datasets.
 - **task3_fetch_atc_hierarchy.py**: Extracts ATC (Anatomical Therapeutic Chemical) hierarchy and categories for drugs.
 - **task4_integrate_gene_signatures.py**: Integrates gene expression and drug target data into feature vectors for each drug.
-- **task5_train_classifier.py**: Trains machine learning models for drug category classification.
+- **task5b_train_classifier.py*_classifier.py**: Trains machine learning models for drug category classification.
 - **task5a_cns_classifier.py**: Trains a classifier to distinguish CNS-active drugs from non-CNS drugs.
 - **task6_predict_evaluate.py**: Runs predictions on test data and evaluates model performance.
 - **create_selected_genes_union.py**: (Optional) Generates a union list of all genes used in the system for validation or UI purposes.
 
 ### Supporting Modules (`src/`)
 - **src/agents/evidence_agent.py**: Provides reasoning and explanation for predictions, integrating evidence from multiple sources.
-- **src/agents/sklearn_agent.py**: Supports model-based reasoning and explanation using scikit-learn models.
+- **src/agents/sklearn_agent.py**: Supports model-based reasoning and explanation using scikit-learn models. Also implements drug similarity search by target gene overlap using the `results/task2_drug_targets.csv` file.
 - **src/metrics/brain_evidence.py**: Calculates brain evidence metrics (e.g., BES, BSR) for gene sets.
 
 ### Web Interface
@@ -49,6 +49,7 @@ The pipeline consists of several stages:
 - **dataset/**: Contains raw input datasets (DrugBank XML, gene expression, etc.).
 - **models/**: Stores trained model files.
 - **results/**: Stores all intermediate and final outputs (CSV, NPY, reports, plots).
+	- **task2_drug_targets.csv**: Contains drug target gene lists for each drug. Used for drug similarity search by gene overlap in the web and CLI interfaces.
 
 ---
 
@@ -60,12 +61,13 @@ The pipeline consists of several stages:
 4. **ATC Hierarchy Extraction**: Assigns ATC categories to drugs.
 5. **Feature Integration**: Combines gene expression and drug target data into feature vectors.
 6. **Model Training**:
-	- **CNS Classifier**: Trains a model to classify drugs as CNS-active or not.
-	- **Category Classifier**: Trains a model to predict the therapeutic category of each drug.
+    - **CNS Classifier**: Trains a model to classify drugs as CNS-active or not.
+    - **Category Classifier**: Trains a model to predict the therapeutic category of each drug.
 7. **Prediction & Reasoning**: Predicts categories for new gene sets and provides explanations using evidence agents.
-8. **User Interaction**:
-	- **CLI**: Via `interactive_predictor.py` for direct user input.
-	- **Web API**: Via `api_server.py` and `web/index.html` for browser-based interaction.
+8. **Drug Similarity Search**: Finds drugs with overlapping target genes using the `task2_drug_targets.csv` file. Results are shown in both CLI and web interface.
+9. **User Interaction**:
+    - **CLI**: Via `interactive_predictor.py` for direct user input.
+    - **Web API**: Via `api_server.py` and `web/index.html` for browser-based interaction.
 
 ---
 
@@ -80,4 +82,5 @@ The pipeline consists of several stages:
 ## Notes
 - All intermediate and final results are saved in the `results/` directory.
 - The system is modular; each task can be run and debugged independently.
- For detailed explanations and reasoning, the system uses evidence agents and brain evidence metrics (BES, BSR) based on brain cell cluster types.
+- Drug similarity search is available in both CLI and web interface, using gene overlap from `task2_drug_targets.csv`.
+- For detailed explanations and reasoning, the system uses evidence agents and brain evidence metrics (BES, BSR) based on brain cell cluster types.
