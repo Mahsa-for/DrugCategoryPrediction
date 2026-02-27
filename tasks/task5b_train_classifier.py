@@ -76,45 +76,39 @@ def train_multiple_models(X_train: np.ndarray, y_train: np.ndarray) -> Dict[str,
     except ImportError:
         LGBMClassifier = None
 
+    # Optimize for speed: reduce CV folds, limit parameter grid, skip expensive models
+    # Further restrict parameters to reduce overfitting
     model_defs = {
         'Random Forest': (RandomForestClassifier(), {
-            'n_estimators': [100, 200],
-            'max_depth': [None, 10, 20],
-            'min_samples_split': [2, 5],
+            'n_estimators': [100],
+            'max_depth': [3, 5],  # Lower tree depth
+            'min_samples_split': [10, 20],  # More samples to split
+            'max_features': [0.3, 'sqrt'],  # Fewer features per split
             'class_weight': ['balanced']
         }),
-        'Gradient Boosting': (GradientBoostingClassifier(), {
-            'n_estimators': [100, 200],
-            'learning_rate': [0.05, 0.1],
-            'max_depth': [3, 5]
-        }),
-        'SVM (RBF)': (SVC(probability=True), {
-            'C': [0.1, 1, 10],
-            'gamma': ['scale', 'auto'],
-            'class_weight': ['balanced']
-        }),
-        'Logistic Regression': (LogisticRegression(max_iter=1000, multi_class='multinomial'), {
-            'C': [0.1, 1, 10],
+        'Logistic Regression': (LogisticRegression(max_iter=500), {
+            'C': [0.01, 0.05],  # Much stronger regularization
             'penalty': ['l2'],
             'solver': ['lbfgs'],
             'class_weight': ['balanced']
         })
     }
+    # Optionally add XGBoost/LightGBM if available, but with minimal grid
     if XGBClassifier:
         model_defs['XGBoost'] = (XGBClassifier(use_label_encoder=False, eval_metric='mlogloss'), {
-            'n_estimators': [100, 200],
-            'max_depth': [3, 6],
-            'learning_rate': [0.05, 0.1]
+            'n_estimators': [100],
+            'max_depth': [3],
+            'learning_rate': [0.1]
         })
     if LGBMClassifier:
         model_defs['LightGBM'] = (LGBMClassifier(), {
-            'n_estimators': [100, 200],
-            'max_depth': [3, 6],
-            'learning_rate': [0.05, 0.1]
+            'n_estimators': [100],
+            'max_depth': [3],
+            'learning_rate': [0.1]
         })
 
     results = {}
-    outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    outer_cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
     for name, (model, param_grid) in model_defs.items():
         print(f"\n    Nested CV for {name}...")
         outer_scores = []
@@ -123,7 +117,7 @@ def train_multiple_models(X_train: np.ndarray, y_train: np.ndarray) -> Dict[str,
             y_tr, y_te = y_train[train_idx], y_train[test_idx]
             smote = SMOTE(random_state=42)
             X_tr_res, y_tr_res = smote.fit_resample(X_tr, y_tr)
-            inner_cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+            inner_cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=42)
             grid = GridSearchCV(model, param_grid, cv=inner_cv, scoring='f1_macro', n_jobs=-1)
             grid.fit(X_tr_res, y_tr_res)
             best_model = grid.best_estimator_
@@ -141,7 +135,7 @@ def train_multiple_models(X_train: np.ndarray, y_train: np.ndarray) -> Dict[str,
         best_model = grid.best_estimator_
         # --- Probability Calibration ---
         from sklearn.calibration import CalibratedClassifierCV
-        calibrator = CalibratedClassifierCV(best_model, method='isotonic', cv=3)
+        calibrator = CalibratedClassifierCV(best_model, method='isotonic', cv=2)
         calibrator.fit(X_resampled, y_resampled)
         train_pred = calibrator.predict(X_resampled)
         train_acc = accuracy_score(y_resampled, train_pred)
@@ -187,8 +181,15 @@ def execute(X: np.ndarray,
     print("\n  Preparing classification labels...")
     y, class_names, valid_mask = prepare_labels(drug_targets, atc_hierarchy, valid_indices)
     
-    # Filter X to match y
-    X_filtered = X[valid_mask]
+    # Filter valid_indices to only those within bounds of X
+    valid_indices = [i for i in valid_indices if i < len(X)]
+    X_valid = X[valid_indices]
+    # Filter valid_mask to match valid_indices
+    valid_mask_filtered = valid_mask[valid_indices]
+    X_filtered = X_valid[valid_mask_filtered]
+    # Filter y to match X_filtered
+    y_valid = y[valid_indices]
+    y_filtered = y_valid[valid_mask_filtered]
     
     print(f"    Total samples: {len(y)}")
     print(f"    Number of classes: {len(class_names)}")
@@ -210,7 +211,7 @@ def execute(X: np.ndarray,
         print(f"    ⚠ Warning: Significant class imbalance detected")
     
     # Train models
-    results, best_model_name = train_multiple_models(X_filtered, y)
+    results, best_model_name = train_multiple_models(X_filtered, y_filtered)
 
     best_model = results[best_model_name]['model']
 
@@ -253,6 +254,39 @@ def execute(X: np.ndarray,
 
     comparison_df = pd.DataFrame(comparison_data)
     comparison_df.to_csv(output_dir / 'task5_model_comparison.csv', index=False)
+
+    # --- Visualization ---
+    # Bar plot for model comparison
+    plt.figure(figsize=(8, 5))
+    plt.bar(comparison_df['model'], comparison_df['cv_accuracy'], yerr=comparison_df['cv_std'], color='skyblue', capsize=5)
+    plt.ylabel('CV Macro-F1')
+    plt.title('Task 5: Model Comparison (Macro-F1)')
+    plt.xticks(rotation=30)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5_model_comparison.png')
+    plt.close()
+
+    # Pie chart for class distribution
+    plt.figure(figsize=(6, 6))
+    plt.pie(counts, labels=unique, autopct='%1.1f%%', startangle=140)
+    plt.title('Task 5: Class Distribution')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5_class_distribution.png')
+    plt.close()
+
+    # Confusion matrix for best model (on train set)
+    from sklearn.metrics import confusion_matrix
+    y_train_pred = best_model.predict(X_filtered)
+    cm = confusion_matrix(y_filtered, y_train_pred, labels=class_names)
+    plt.figure(figsize=(8, 6))
+    import seaborn as sns
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.title('Confusion Matrix (Train Set, Best Model)')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5_confusion_matrix.png')
+    plt.close()
 
     # Prepare metrics dictionary
     metrics = {

@@ -78,11 +78,12 @@ def train_multiple_models(X_train: np.ndarray, y_train: np.ndarray, scaler: Stan
     else:
         X_train_scaled = scaler.transform(X_train)
     
+    # Further restrict parameters to reduce overfitting
     models = {
-        'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1),
-        'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, random_state=42),
-        'SVM (RBF)': SVC(kernel='rbf', random_state=42, probability=True),
-        'Logistic Regression': LogisticRegression(max_iter=1000, random_state=42)
+        'Random Forest': RandomForestClassifier(n_estimators=100, max_depth=3, min_samples_split=15, max_features=0.3, class_weight='balanced', random_state=42, n_jobs=-1),
+        'Gradient Boosting': GradientBoostingClassifier(n_estimators=100, max_depth=3, random_state=42),
+        'SVM (RBF)': SVC(kernel='rbf', C=0.1, random_state=42, probability=True),
+        'Logistic Regression': LogisticRegression(max_iter=1000, C=0.01, penalty='l2', class_weight='balanced', random_state=42)
     }
     
     results = {}
@@ -124,6 +125,62 @@ def train_multiple_models(X_train: np.ndarray, y_train: np.ndarray, scaler: Stan
     print(f"\n  ✓ Best model: {best_model_name} (CV: {results[best_model_name]['cv_mean']:.4f})")
     
     return results, scaler
+    print("\n  Training multiple classification models with class balancing (SMOTE)...")
+    warnings.filterwarnings('ignore')
+    from imblearn.over_sampling import SMOTE
+    from sklearn.model_selection import GridSearchCV
+    try:
+        XGBClassifier = __import__('xgboost').XGBClassifier
+    except ImportError:
+        XGBClassifier = None
+    try:
+        LGBMClassifier = __import__('lightgbm').LGBMClassifier
+    except ImportError:
+        LGBMClassifier = None
+
+    # Optimize for speed: reduce CV folds, limit parameter grid, skip expensive models
+    model_defs = {
+        'Random Forest': (RandomForestClassifier(), {
+            'n_estimators': [100],
+            'max_depth': [None],
+            'min_samples_split': [2],
+            'class_weight': ['balanced']
+        }),
+        'Logistic Regression': (LogisticRegression(max_iter=500), {
+            'C': [1],
+            'penalty': ['l2'],
+            'solver': ['lbfgs'],
+            'class_weight': ['balanced']
+        })
+    }
+    if XGBClassifier:
+        model_defs['XGBoost'] = (XGBClassifier(), {'n_estimators': [100], 'max_depth': [3]})
+    if LGBMClassifier:
+        model_defs['LightGBM'] = (LGBMClassifier(), {'n_estimators': [100], 'max_depth': [3]})
+
+    results = {}
+    outer_cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+    for name, (model, param_grid) in model_defs.items():
+        print(f"\n    Training {name}...")
+        # Apply SMOTE for class balancing
+        smote = SMOTE(random_state=42)
+        X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+        grid = GridSearchCV(model, param_grid, cv=outer_cv, scoring='accuracy', n_jobs=-1)
+        grid.fit(X_resampled, y_resampled)
+        best_model = grid.best_estimator_
+        cv_scores = cross_val_score(best_model, X_resampled, y_resampled, cv=outer_cv, scoring='accuracy')
+        results[name] = {
+            'model': best_model,
+            'cv_mean': np.mean(cv_scores),
+            'cv_std': np.std(cv_scores),
+            'train_accuracy': accuracy_score(y_resampled, best_model.predict(X_resampled)),
+            'train_f1': f1_score(y_resampled, best_model.predict(X_resampled), average='weighted'),
+            'train_precision': f1_score(y_resampled, best_model.predict(X_resampled), average='weighted'),
+            'train_recall': f1_score(y_resampled, best_model.predict(X_resampled), average='weighted')
+        }
+    best_model_name = max(results.keys(), key=lambda k: results[k]['cv_mean'])
+    print(f"\n  ✓ Best model: {best_model_name} (CV: {results[best_model_name]['cv_mean']:.4f})")
+    return results
 
 
 def execute(X: np.ndarray,
@@ -208,6 +265,33 @@ def execute(X: np.ndarray,
     plt.savefig(output_dir / 'task5a_model_comparison_bar.png')
     plt.close()
 
+    # 1b. Lollipop chart: Model comparison (CV accuracy)
+    plt.figure(figsize=(8, 5))
+    sorted_df = comparison_df.sort_values('cv_accuracy')
+    plt.hlines(y=sorted_df['model'], xmin=sorted_df['cv_accuracy'].min(), xmax=sorted_df['cv_accuracy'], color='skyblue')
+    plt.plot(sorted_df['cv_accuracy'], sorted_df['model'], 'o', color='navy')
+    for idx, row in sorted_df.iterrows():
+        plt.text(row['cv_accuracy'] + 0.002, row['model'], f"{row['cv_accuracy']:.3f}", va='center', fontsize=10)
+    plt.title('CNS Classifier Model Comparison (Lollipop Chart)')
+    plt.xlabel('CV Accuracy')
+    plt.xlim(sorted_df['cv_accuracy'].min() - 0.01, sorted_df['cv_accuracy'].max() + 0.01)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5a_model_comparison_lollipop.png')
+    plt.close()
+
+    # 1c. Horizontal bar chart with value labels
+    plt.figure(figsize=(8, 5))
+    sns.barplot(y='model', x='cv_accuracy', data=comparison_df, palette='Blues_d', orient='h')
+    for i, (acc, std) in enumerate(zip(comparison_df['cv_accuracy'], comparison_df['cv_std'])):
+        plt.text(acc + 0.002, i, f"{acc:.3f}", va='center', fontsize=10)
+    plt.title('CNS Classifier Model Comparison (Horizontal Bar)')
+    plt.xlabel('CV Accuracy')
+    plt.ylabel('Model')
+    plt.xlim(comparison_df['cv_accuracy'].min() - 0.01, comparison_df['cv_accuracy'].max() + 0.01)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'task5a_model_comparison_horizontal.png')
+    plt.close()
+
     # 2. Pie chart: Class distribution
     plt.figure(figsize=(5, 5))
     plt.pie([cns_count, non_cns_count], labels=['CNS', 'Non-CNS'], autopct='%1.1f%%', colors=['#4f8cff', '#ffb347'])
@@ -216,18 +300,25 @@ def execute(X: np.ndarray,
     plt.savefig(output_dir / 'task5a_class_distribution_pie.png')
     plt.close()
 
-    # 3. Confusion matrix for best model (on train set)
+    # 3. Confusion matrix for best model (on train set) with threshold tuning
     from sklearn.metrics import confusion_matrix
     X_scaled = scaler.transform(X)
-    y_pred = best_model.predict(X_scaled)
-    cm = confusion_matrix(y, y_pred)
+    threshold = 0.3  # Set your custom threshold here
+    if hasattr(best_model, 'predict_proba'):
+        y_proba = best_model.predict_proba(X_scaled)[:, 1]
+        y_pred_thresh = (y_proba >= threshold).astype(int)
+        print(f"\n  [Threshold Tuning] Using probability threshold = {threshold}")
+    else:
+        y_pred_thresh = best_model.predict(X_scaled)
+        print("\n  [Threshold Tuning] Model does not support predict_proba; using default predictions.")
+    cm = confusion_matrix(y, y_pred_thresh)
     plt.figure(figsize=(5, 4))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Non-CNS', 'CNS'], yticklabels=['Non-CNS', 'CNS'])
-    plt.title('Confusion Matrix (Train Set, Best Model)')
+    plt.title(f'Confusion Matrix (Train Set, Best Model, Threshold={threshold})')
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.tight_layout()
-    plt.savefig(output_dir / 'task5a_confusion_matrix.png')
+    plt.savefig(output_dir / f'task5a_confusion_matrix_threshold_{threshold}.png')
     plt.close()
 
     # 4. ROC curve for best model (on train set)

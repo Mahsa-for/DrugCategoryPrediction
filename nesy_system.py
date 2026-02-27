@@ -20,7 +20,7 @@ from tasks import (
     task3_fetch_atc_hierarchy,
     task4_integrate_gene_signatures,
     task5a_cns_classifier,
-    task5_train_classifier,
+    task5b_train_classifier,
     task6_predict_evaluate
 )
 
@@ -228,7 +228,7 @@ class NeSyDrugPredictionSystem:
         
         return self.cns_classifier, self.cns_scaler
     
-    def task5_train_model(self, X_train, y_train) -> Any:
+    def task5b_train_classifier_model(self, X_train, y_train) -> Any:
         """
         Task 5: Train Drug Category Classification Model
         Input: Integrated features + ATC categories
@@ -508,10 +508,10 @@ class NeSyDrugPredictionSystem:
         print(f"    Train set: {len(X_train)}, Test set: {len(X_test)}")
         
         # Task 5: Train drug category classification model (Stage 2)
-        model = self.task5_train_model(X_train, y_train)
+        self.task5b_train_classifier_model(X_train, y_train)
         
         # Task 6: Predict and evaluate
-        self.task6_predict(model, X_test, y_test, top_k=self.config.get('top_k', 5))
+        self.task6_predict(self.classifier_model, X_test, y_test, top_k=self.config.get('top_k', 5))
         
         # Generate report
         self.generate_report()

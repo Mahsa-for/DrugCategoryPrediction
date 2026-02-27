@@ -112,6 +112,13 @@ class SklearnAgent:
         summary += f"\nBSR (Brain Specificity Ratio): {inputs.bsr:.2f} — ratio of brain to baseline expression."
         summary += f"\nCNS Score: {inputs.cns_score:.2f} — likelihood of CNS activity."
 
+        # CNS imbalance warning (for CNS classifier only)
+        cns_imbalance_warning = ""
+        if hasattr(self, 'model_name') and self.model_name and 'cns' in self.model_name.lower():
+            # Heuristic: warn if class imbalance is likely (e.g., from known dataset or config)
+            summary += "\n⚠ Note: The CNS classifier was trained on imbalanced data (CNS vs Non-CNS). CNS predictions may be less reliable for rare classes."
+            cns_imbalance_warning = "⚠ CNS classifier was trained on imbalanced data. Predictions may be less reliable for rare classes."
+
         # Sufficiency check
         sufficiency = "Sufficient" if (inputs.bes and inputs.bes > 0.3) and (inputs.bsr and inputs.bsr > 1.0) else "Insufficient"
         summary += f"\nEvidence sufficiency: {sufficiency}."
@@ -137,9 +144,13 @@ class SklearnAgent:
 
         # Closest drugs (by gene overlap)
         closest_drugs = self._find_closest_drugs(inputs.target_genes)
-        summary += "\nMost similar drugs (by target gene overlap): "
-        for drug in closest_drugs:
-            summary += f"\n- {drug['name']} (ID: {drug['drug_id']}, overlap: {drug['overlap']})"
+        summary += f"\nMost similar drugs (by target gene overlap): (Input genes: {', '.join(inputs.target_genes)})"
+        if closest_drugs:
+            for drug in closest_drugs:
+                summary += f"\n- {drug['name']} (ID: {drug['drug_id']}, overlap: {drug['overlap']})"
+            summary += f"\nTotal matches found: {len(closest_drugs)}"
+        else:
+            summary += "\nNo similar drugs found for the given target genes."
 
         # Compose reasoning steps
         reasoning_steps = []
@@ -167,7 +178,8 @@ class SklearnAgent:
             "details": self._reasoning(inputs, feature_importances, X),
             "sufficiency": sufficiency,
             "gene_expression_quality": gene_expr_quality,
-            "closest_drugs": closest_drugs
+            "closest_drugs": closest_drugs,
+            "cns_imbalance_warning": cns_imbalance_warning
         }
 
         explanation = {
@@ -183,27 +195,47 @@ class SklearnAgent:
 
     def _find_closest_drugs(self, user_genes, top_n=4):
         import pandas as pd
-        import ast
-        drugs_path = 'results/drugs_data.csv'
+        drugs_path = 'results/task2_drug_targets.csv'  # Confirmed correct file name
         if not hasattr(self, '_drugs_df'):
             try:
                 self._drugs_df = pd.read_csv(drugs_path)
             except Exception:
                 return []
         df = self._drugs_df
-        user_genes_set = set([g.upper() for g in user_genes])
+        def sanitize_gene(g):
+            return g.upper().replace("'", "").replace("\"", "").replace(" ", "").strip()
+        user_genes_set = set([sanitize_gene(g) for g in user_genes if g])
         closest = []
         for _, row in df.iterrows():
             try:
-                drug_genes = ast.literal_eval(row['target_genes'])
-                drug_genes_set = set([g.upper() for g in drug_genes])
+                tg = row.get('target_genes', None)
+                if tg is None or tg == '' or pd.isna(tg):
+                    continue
+                # Handle list, comma-separated string, or string representation of list
+                if isinstance(tg, list):
+                    drug_genes = tg
+                elif isinstance(tg, str):
+                    tg_strip = tg.strip()
+                    if tg_strip.startswith('[') and tg_strip.endswith(']'):
+                        import ast
+                        try:
+                            drug_genes = ast.literal_eval(tg_strip)
+                        except Exception:
+                            drug_genes = [tg_strip]
+                    elif ',' in tg_strip:
+                        drug_genes = [g.strip() for g in tg_strip.split(',') if g.strip()]
+                    else:
+                        drug_genes = [tg_strip]
+                else:
+                    drug_genes = []
+                drug_genes_set = set([sanitize_gene(g) for g in drug_genes if g])
                 overlap = len(user_genes_set & drug_genes_set)
                 if overlap > 0:
                     closest.append({
-                        'drug_id': row['drug_id'],
-                        'name': row['name'],
+                        'drug_id': row.get('drug_id', ''),
+                        'name': row.get('drug_name', row.get('name', '')),
                         'overlap': overlap,
-                        'atc_codes': row['atc_codes'],
+                        'atc_codes': row.get('atc_codes', ''),
                         'target_genes': drug_genes
                     })
             except Exception:

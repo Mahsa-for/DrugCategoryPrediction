@@ -57,19 +57,22 @@ def execute(cluster_type_path: str, output_dir: Path) -> pd.DataFrame:
     for gene, expr in top_genes.items():
         print(f"    {gene}: {expr:.2f}")
 
-        # Create a bar chart of average gene expression by cluster type
+        # Create a heatmap of gene expression (genes × cluster types)
         import matplotlib.pyplot as plt
-        avg_expression_by_cluster = gene_expression.mean(axis=0).sort_values(ascending=False)
-        plt.figure(figsize=(12, 6))
-        avg_expression_by_cluster.plot(kind='bar', color='skyblue')
-        plt.title('Average Gene Expression by Brain Cluster Type')
+        import seaborn as sns
+        plt.figure(figsize=(16, 8))
+        # For visualization, limit to top 30 genes by mean expression
+        top_gene_names = mean_expression_per_gene.nlargest(15).index
+        heatmap_data = gene_expression.loc[top_gene_names]
+        sns.heatmap(heatmap_data, cmap="viridis", cbar_kws={"label": "Expression (nCPM)"}, linewidths=0.5)
+        plt.title('Gene Expression Heatmap (Top 15 Genes × Brain Cluster Types)')
         plt.xlabel('Brain Cluster Type')
-        plt.ylabel('Average Expression (nCPM)')
+        plt.ylabel('Gene Name')
         plt.tight_layout()
-        plot_path = output_dir / 'task1_avg_expression_by_cluster.png'
+        plot_path = output_dir / 'task1_expression_heatmap.png'
         plt.savefig(plot_path)
         plt.close()
-        print(f"\n✓ Bar chart saved: {plot_path}")
+        print(f"\n[OK] Heatmap saved: {plot_path}")
     
     return gene_expression
 
@@ -81,4 +84,4 @@ if __name__ == "__main__":
     output_dir.mkdir(exist_ok=True)
     
     result = execute(cluster_type_path, output_dir)
-    print(f"\n✓ Task 1 test completed. Shape: {result.shape}")
+    print(f"\n[OK] Task 1 test completed. Shape: {result.shape}")

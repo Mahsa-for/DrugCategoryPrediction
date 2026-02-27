@@ -76,7 +76,7 @@ def create_drug_features(drug_genes: List[str], gene_expression: pd.DataFrame, b
     return np.array(features)
 
 
-def execute(brain_expression: pd.DataFrame, 
+def execute(brain_expression: pd.DataFrame,
             drug_targets: pd.DataFrame,
             output_dir: Path) -> Tuple[np.ndarray, List[int]]:
     """
@@ -199,70 +199,54 @@ def execute(brain_expression: pd.DataFrame,
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    # 1. Feature variance (importance) bar plot
-    plt.figure(figsize=(12, 6))
-    feature_importance.head(20).plot(x='feature_name', y='variance', kind='bar', legend=False, color='dodgerblue')
-    plt.title('Top 20 Most Variable Integrated Features')
-    plt.ylabel('Variance (Feature Importance)')
-    plt.xlabel('Feature')
-    plt.xticks(rotation=75, ha='right')
+    # (Removed: Top 20 Most Variable Features bar plot and Pie chart of variance contribution)
+
+    # 2. PCA plot of feature matrix (first two principal components)
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=2)
+    pca_result = pca.fit_transform(feature_matrix_scaled)
+    plt.figure(figsize=(8, 6))
+    plt.scatter(pca_result[:, 0], pca_result[:, 1], alpha=0.7, c='dodgerblue', edgecolor='k')
+    plt.title('PCA Plot of Feature Matrix (First 2 Components)')
+    plt.xlabel('PC1')
+    plt.ylabel('PC2')
     plt.tight_layout()
-    plt.savefig(output_dir / 'task4_top20_feature_importance.png')
+    plt.savefig(output_dir / 'task4_feature_matrix_pca.png')
     plt.close()
 
-    # 1b. Pie chart of variance contribution (top 10 features)
-    plt.figure(figsize=(8, 8))
-    top10 = feature_importance.head(10)
-    plt.pie(top10['variance'], labels=top10['feature_name'], autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
-    plt.title('Top 10 Feature Variance Contribution (Pie Chart)')
-    plt.tight_layout()
-    plt.savefig(output_dir / 'task4_top10_feature_variance_pie.png')
-    plt.close()
+    # (Removed: Giant boxplot of all features)
 
-    # 2. Heatmap of feature matrix (first 30 samples × first 30 features)
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(feature_matrix_scaled[:30, :30], cmap='viridis')
-    plt.title('Feature Matrix Heatmap (First 30 Samples × 30 Features)')
-    plt.xlabel('Feature Index')
-    plt.ylabel('Sample Index')
-    plt.tight_layout()
-    plt.savefig(output_dir / 'task4_feature_matrix_heatmap.png')
-    plt.close()
-
-    # 2b. Boxplot of all features (distribution across all samples)
-    plt.figure(figsize=(14, 6))
-    plt.boxplot(feature_matrix_scaled, vert=False, patch_artist=True, boxprops=dict(facecolor='lightblue'))
-    plt.title('Boxplot: Distribution of All Features (Standardized)')
-    plt.xlabel('Value (Standardized)')
-    plt.tight_layout()
-    plt.savefig(output_dir / 'task4_feature_boxplot.png')
-    plt.close()
-
-    # 3. Distribution of BES and BSR values
-    plt.figure(figsize=(8, 5))
-    bes_idx = feature_names.index('BES')
-    bsr_idx = feature_names.index('BSR')
-    plt.hist(feature_matrix_scaled[:, bes_idx], bins=40, color='purple', alpha=0.7, label='BES')
-    plt.hist(feature_matrix_scaled[:, bsr_idx], bins=40, color='orange', alpha=0.7, label='BSR')
-    plt.title('Distribution of BES and BSR (Standardized)')
-    plt.xlabel('Value (Standardized)')
-    plt.ylabel('Frequency')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(output_dir / 'task4_bes_bsr_distribution.png')
-    plt.close()
-
-    # 3b. KDE plot for BES and BSR
-    plt.figure(figsize=(8, 5))
-    sns.kdeplot(feature_matrix_scaled[:, bes_idx], label='BES', fill=True, color='purple', alpha=0.5)
-    sns.kdeplot(feature_matrix_scaled[:, bsr_idx], label='BSR', fill=True, color='orange', alpha=0.5)
-    plt.title('KDE Plot of BES and BSR (Standardized)')
-    plt.xlabel('Value (Standardized)')
-    plt.ylabel('Density')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(output_dir / 'task4_bes_bsr_kde.png')
-    plt.close()
+    # 3. UMAP visualization of BES and BSR values
+    try:
+        import umap
+        bes_idx = feature_names.index('BES')
+        bsr_idx = feature_names.index('BSR')
+        umap_data = feature_matrix_scaled[:, [bes_idx, bsr_idx]]
+        reducer = umap.UMAP(n_components=2, random_state=42)
+        umap_result = reducer.fit_transform(umap_data)
+        plt.figure(figsize=(8, 6))
+        plt.scatter(umap_result[:, 0], umap_result[:, 1], c=umap_data[:, 0], cmap='plasma', alpha=0.7, edgecolor='k')
+        plt.title('UMAP Visualization of BES and BSR')
+        plt.xlabel('UMAP1')
+        plt.ylabel('UMAP2')
+        plt.colorbar(label='BES Value')
+        plt.tight_layout()
+        plt.savefig(output_dir / 'task4_bes_bsr_umap.png')
+        plt.close()
+    except ImportError:
+        print("UMAP not installed. Skipping UMAP visualization for BES and BSR.")
+        # Optionally, fallback to scatter plot
+        bes_idx = feature_names.index('BES')
+        bsr_idx = feature_names.index('BSR')
+        plt.figure(figsize=(8, 6))
+        plt.scatter(feature_matrix_scaled[:, bes_idx], feature_matrix_scaled[:, bsr_idx], alpha=0.7, c=feature_matrix_scaled[:, bes_idx], cmap='plasma', edgecolor='k')
+        plt.title('Scatter Plot of BES vs BSR (Standardized)')
+        plt.xlabel('BES')
+        plt.ylabel('BSR')
+        plt.colorbar(label='BES Value')
+        plt.tight_layout()
+        plt.savefig(output_dir / 'task4_bes_bsr_scatter.png')
+        plt.close()
 
     # 4. Correlation heatmap of features (first 30 features)
     plt.figure(figsize=(12, 10))
