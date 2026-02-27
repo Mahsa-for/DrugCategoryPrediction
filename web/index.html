@@ -603,10 +603,15 @@
         }
         // Closest drugs
         if (data.explanation && data.explanation.txagent_explanation && data.explanation.txagent_explanation.closest_drugs) {
+            const drugs = data.explanation.txagent_explanation.closest_drugs;
             html += `<div style="margin-bottom:12px;"><strong>Most Similar Drugs (by target gene overlap):</strong><ul style="margin:6px 0 0 16px;">`;
-            data.explanation.txagent_explanation.closest_drugs.forEach(drug => {
-                html += `<li>${drug.name} (ID: ${drug.drug_id}, overlap: ${drug.overlap})</li>`;
-            });
+            if (drugs.length > 0) {
+                drugs.forEach(drug => {
+                    html += `<li>${drug.name} (ID: ${drug.drug_id}, overlap: ${drug.overlap})</li>`;
+                });
+            } else {
+                html += `<li style="color:#888;">No similar drugs found with overlapping target genes.</li>`;
+            }
             html += `</ul></div>`;
         }
         document.getElementById('summaryText').innerHTML = html;
