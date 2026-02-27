@@ -303,7 +303,7 @@ class InteractiveDrugPredictor:
                 'error': str(e)
             }
 
-    def _compute_cns_relevance(self, brain_evidence, region_info, cns_threshold=0.5):
+    def _compute_cns_relevance(self, brain_evidence, region_info, cns_threshold=0.3):
         """Compute CNS relevance from brain evidence metrics. CNS threshold is now configurable."""
         if not brain_evidence or not region_info.get('mapping_valid'):
             return {
