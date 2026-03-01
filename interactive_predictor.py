@@ -491,7 +491,7 @@ class InteractiveDrugPredictor:
                 if tx.get('closest_drugs'):
                     print(f"  Closest drugs:")
                     for drug in tx['closest_drugs']:
-                        print(f"    - {drug['name']} (ID: {drug['drug_id']}, overlap: {drug['overlap']})")
+                        print(f"    - {drug.get('name', 'Unknown')} (ID: {drug.get('drug_id', 'N/A')}, overlap: {drug.get('overlap', 0)})")
 
 
 def main():
