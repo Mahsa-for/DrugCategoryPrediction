@@ -1,5 +1,5 @@
 feature_name,variance
-std_expr_oligodendrocyte,1.0000000000000255
+std_expr_oligodendrocyte,1.0000000000000253
 std_expr_fibroblast,1.0000000000000238
 std_expr_cerebellar inhibitory,1.000000000000019
 std_expr_splatter,1.0000000000000187
@@ -9,30 +9,30 @@ std_expr_hippocampal CA4,1.0000000000000149
 std_expr_medium spiny neuron,1.0000000000000124
 std_expr_leukocyte,1.0000000000000124
 std_expr_MGE interneuron,1.0000000000000115
-std_expr_miscellaneous,1.0000000000000107
 max_expr_splatter,1.0000000000000104
 std_expr_amygdala excitatory,1.0000000000000104
+std_expr_miscellaneous,1.0000000000000102
 max_expr_midbrain-derived inhibitory,1.00000000000001
 max_expr_vascular associated smooth muscle cell,1.00000000000001
 max_expr_cerebellar inhibitory,1.0000000000000095
-std_expr_thalamic excitatory,1.0000000000000093
+std_expr_thalamic excitatory,1.0000000000000095
 std_expr_pericyte,1.0000000000000089
 max_expr_leukocyte,1.000000000000008
 max_expr_hippocampal CA1-3,1.0000000000000062
 max_expr_hippocampal dentate gyrus,1.0000000000000062
 std_expr_mammillary body,1.000000000000006
-mean_expr_endothelial cell,1.0000000000000056
+mean_expr_endothelial cell,1.0000000000000058
 max_expr_Bergmann glia,1.0000000000000056
 std_expr_upper-layer intratelencephalic,1.0000000000000053
 max_expr_amygdala excitatory,1.0000000000000053
-std_expr_LAMP5-LHX6 and Chandelier,1.0000000000000053
 mean_expr_pericyte,1.000000000000005
+std_expr_LAMP5-LHX6 and Chandelier,1.000000000000005
 num_genes,1.0000000000000049
-mean_expr_miscellaneous,1.0000000000000044
+mean_expr_miscellaneous,1.0000000000000047
 mean_expr_LAMP5-LHX6 and Chandelier,1.0000000000000044
+mean_expr_ependymal cell,1.0000000000000042
 max_expr_lower rhombic lip,1.000000000000004
 max_expr_endothelial cell,1.000000000000004
-mean_expr_ependymal cell,1.000000000000004
 std_expr_deep-layer intratelencephalic,1.0000000000000038
 mean_expr_committed oligodendrocyte precursor,1.0000000000000036
 mean_expr_eccentric medium spiny neuron,1.0000000000000036
@@ -46,25 +46,25 @@ max_expr_CGE interneuron,1.0000000000000024
 max_expr_upper rhombic lip,1.0000000000000022
 max_expr_choroid plexus epithelial cell,1.000000000000002
 max_expr_deep-layer corticothalamic and 6b,1.0000000000000018
-mean_expr_thalamic excitatory,1.0000000000000013
 mean_expr_splatter,1.000000000000001
-mean_expr_hippocampal CA1-3,1.000000000000001
-mean_expr_fibroblast,1.0000000000000009
+mean_expr_thalamic excitatory,1.000000000000001
 max_expr_committed oligodendrocyte precursor,1.0000000000000009
 max_expr_fibroblast,1.0000000000000009
+mean_expr_fibroblast,1.0000000000000009
+mean_expr_hippocampal CA1-3,1.0000000000000009
 std_expr_committed oligodendrocyte precursor,1.0000000000000004
-overall_std,1.0000000000000004
 max_expr_medium spiny neuron,1.0000000000000004
+overall_std,1.0000000000000004
 mean_expr_MGE interneuron,1.0000000000000004
 mean_expr_medium spiny neuron,1.0000000000000002
 max_expr_LAMP5-LHX6 and Chandelier,0.9999999999999998
 mean_expr_deep-layer corticothalamic and 6b,0.9999999999999997
 max_expr_miscellaneous,0.9999999999999994
-mean_expr_mammillary body,0.9999999999999992
-std_expr_Bergmann glia,0.9999999999999991
+mean_expr_mammillary body,0.9999999999999993
+mean_expr_hippocampal CA4,0.9999999999999992
+mean_expr_midbrain-derived inhibitory,0.9999999999999992
+std_expr_Bergmann glia,0.9999999999999992
 mean_expr_choroid plexus epithelial cell,0.9999999999999991
-mean_expr_hippocampal CA4,0.999999999999999
-mean_expr_midbrain-derived inhibitory,0.999999999999999
 mean_expr_amygdala excitatory,0.9999999999999988
 mean_expr_upper-layer intratelencephalic,0.999999999999998
 std_expr_oligodendrocyte precursor cell,0.9999999999999979
@@ -72,39 +72,39 @@ mean_expr_CGE interneuron,0.9999999999999978
 mean_expr_leukocyte,0.9999999999999976
 max_expr_central nervous system macrophage,0.9999999999999974
 mean_expr_lower rhombic lip,0.9999999999999973
+overall_mean,0.9999999999999972
 std_expr_vascular associated smooth muscle cell,0.9999999999999972
 max_expr_astrocyte,0.9999999999999972
 std_expr_hippocampal CA1-3,0.9999999999999971
 mean_expr_vascular associated smooth muscle cell,0.9999999999999971
 mean_expr_cerebellar inhibitory,0.999999999999997
 max_expr_deep-layer near-projecting,0.999999999999997
-overall_mean,0.999999999999997
 max_expr_MGE interneuron,0.999999999999997
 max_expr_upper-layer intratelencephalic,0.9999999999999969
-mean_expr_upper rhombic lip,0.9999999999999967
+mean_expr_upper rhombic lip,0.9999999999999968
 max_expr_thalamic excitatory,0.9999999999999967
 max_expr_deep-layer intratelencephalic,0.9999999999999966
 mean_expr_deep-layer near-projecting,0.9999999999999961
-mean_expr_central nervous system macrophage,0.9999999999999956
+mean_expr_central nervous system macrophage,0.9999999999999953
 mean_expr_hippocampal dentate gyrus,0.9999999999999952
-std_expr_eccentric medium spiny neuron,0.9999999999999944
 max_expr_pericyte,0.9999999999999944
+std_expr_eccentric medium spiny neuron,0.9999999999999944
 max_expr_oligodendrocyte,0.9999999999999937
 max_expr_oligodendrocyte precursor cell,0.9999999999999933
 max_expr_mammillary body,0.9999999999999928
 overall_max,0.999999999999992
-mean_expr_deep-layer intratelencephalic,0.9999999999999918
+mean_expr_deep-layer intratelencephalic,0.9999999999999919
 mean_expr_oligodendrocyte precursor cell,0.9999999999999913
-std_expr_deep-layer corticothalamic and 6b,0.9999999999999908
+std_expr_deep-layer corticothalamic and 6b,0.9999999999999909
 std_expr_ependymal cell,0.9999999999999905
 max_expr_hippocampal CA4,0.99999999999999
 std_expr_deep-layer near-projecting,0.9999999999999883
-std_expr_choroid plexus epithelial cell,0.9999999999999871
+std_expr_choroid plexus epithelial cell,0.999999999999987
 std_expr_midbrain-derived inhibitory,0.9999999999999869
 gene_coverage,0.9999999999999857
 std_expr_upper rhombic lip,0.9999999999999845
 std_expr_astrocyte,0.9999999999999823
 std_expr_endothelial cell,0.9999999999999798
 std_expr_lower rhombic lip,0.9999999999999793
-std_expr_central nervous system macrophage,0.9999999999999757
+std_expr_central nervous system macrophage,0.9999999999999758
 BSR,0.0

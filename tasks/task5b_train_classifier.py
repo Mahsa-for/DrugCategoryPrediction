@@ -225,7 +225,7 @@ def execute(X: np.ndarray,
         'class_names': class_names,
         'model_name': best_model_name
     }
-    joblib.dump(model_save, output_dir / 'task5_classifier_model.pkl')
+    joblib.dump(model_save, output_dir / 'task5b_classifier_model.pkl')
 
     # Extract feature importance if available
     if hasattr(best_model, 'feature_importances_'):
@@ -235,7 +235,7 @@ def execute(X: np.ndarray,
             'importance': importances
         }).sort_values('importance', ascending=False)
 
-        importance_df.to_csv(output_dir / 'task5_feature_importances.csv', index=False)
+        importance_df.to_csv(output_dir / 'task5b_feature_importances.csv', index=False)
 
         print(f"\n  Top 10 most important features:")
         for _, row in importance_df.head(10).iterrows():
@@ -253,7 +253,7 @@ def execute(X: np.ndarray,
         })
 
     comparison_df = pd.DataFrame(comparison_data)
-    comparison_df.to_csv(output_dir / 'task5_model_comparison.csv', index=False)
+    comparison_df.to_csv(output_dir / 'task5b_model_comparison.csv', index=False)
 
     # --- Visualization ---
     # Bar plot for model comparison
@@ -263,7 +263,7 @@ def execute(X: np.ndarray,
     plt.title('Task 5: Model Comparison (Macro-F1)')
     plt.xticks(rotation=30)
     plt.tight_layout()
-    plt.savefig(output_dir / 'task5_model_comparison.png')
+    plt.savefig(output_dir / 'task5b_model_comparison.png')
     plt.close()
 
     # Pie chart for class distribution
@@ -271,7 +271,7 @@ def execute(X: np.ndarray,
     plt.pie(counts, labels=unique, autopct='%1.1f%%', startangle=140)
     plt.title('Task 5: Class Distribution')
     plt.tight_layout()
-    plt.savefig(output_dir / 'task5_class_distribution.png')
+    plt.savefig(output_dir / 'task5b_class_distribution.png')
     plt.close()
 
     # Confusion matrix for best model (on train set)
@@ -285,7 +285,7 @@ def execute(X: np.ndarray,
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.tight_layout()
-    plt.savefig(output_dir / 'task5_confusion_matrix.png')
+    plt.savefig(output_dir / 'task5b_confusion_matrix.png')
     plt.close()
 
     # Prepare metrics dictionary

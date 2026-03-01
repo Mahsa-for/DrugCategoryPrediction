@@ -231,9 +231,22 @@ class SklearnAgent:
                 drug_genes_set = set([sanitize_gene(g) for g in drug_genes if g])
                 overlap = len(user_genes_set & drug_genes_set)
                 if overlap > 0:
+                    # Get drug name and source
+                    drug_name = str(row.get('drug_name', row.get('name', '')))
+                    drug_id = str(row.get('drug_id', ''))
+                    drug_source = str(row.get('source', ''))
+                    
+                    # Skip if name is just a number (DRUGseqr entries without real names)
+                    if drug_name.strip().isdigit():
+                        continue
+                    
+                    # Skip if name is empty or same as ID
+                    if not drug_name.strip() or drug_name.strip() == drug_id.strip():
+                        continue
+                    
                     closest.append({
-                        'drug_id': row.get('drug_id', ''),
-                        'name': row.get('drug_name', row.get('name', '')),
+                        'drug_id': drug_id,
+                        'name': drug_name,
                         'overlap': overlap,
                         'atc_codes': row.get('atc_codes', ''),
                         'target_genes': drug_genes
