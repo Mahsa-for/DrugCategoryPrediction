@@ -1,25 +1,19 @@
-# Ignore Python cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Ignore local virtual environments
-vllm-env/
-venv/
-.env/
-
-# Ignore OS files
-.DS_Store
-Thumbs.db
-
-# Ignore dataset (do not copy to Docker image)
-dataset/
-
-# Ignore other common files
-*.swp
-*.bak
+*.db
+*.sqlite3
 *.log
-
-# Ignore Jupyter notebook checkpoints
-.ipynb_checkpoints/
+*.csv
+*.npy
+*.joblib
+*.xml
+*.tsv
+*.json
+dataset/
+models/
+.venv/
+.env
+.DS_Store
+.git
